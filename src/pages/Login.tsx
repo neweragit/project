@@ -82,27 +82,44 @@ export default function Login() {
     const fetchOptions = async () => {
       try {
         setIsLoadingOptions(true);
+        console.log('🔄 Login: Starting to fetch field options...');
+        
         const [fields, roles] = await Promise.all([
           auth.getFieldOfInterestOptions(),
           auth.getUserRoleOptions()
         ]);
+        
+        console.log('📋 Login: Fetched field options:', fields);
+        console.log('👥 Login: Fetched role options:', roles);
+        console.log('📊 Login: Field options count:', fields.length);
+        
         setFieldOptions(fields);
         // Remove duplicates from roles
         const uniqueRoles = [...new Set(roles)];
         setRoleOptions(uniqueRoles);
+        
+        console.log('✅ Login: Options loaded successfully');
       } catch (error) {
-        console.error('Error fetching options:', error);
-        // Set minimal fallback options
+        console.error('❌ Login: Error fetching options:', error);
+        console.error('❌ Login: Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        // Only use dynamic data from database - no fallback options
         setFieldOptions([]);
         setRoleOptions(['Member']);
       } finally {
         setIsLoadingOptions(false);
+        console.log('🏁 Login: Options loading finished');
       }
     };
 
     // Add timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (isLoadingOptions) {
+        console.log('⏰ Login: Options loading timed out after 5 seconds');
         setIsLoadingOptions(false);
         setFieldOptions([]);
         setRoleOptions(['Member']);
@@ -664,6 +681,13 @@ export default function Login() {
                     <div className="flex items-center">
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Loading options...
+                    </div>
+                  </SelectItem>
+                ) : fieldOptions.length === 0 ? (
+                  <SelectItem value="no-options" disabled>
+                    <div className="flex items-center text-muted-foreground">
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      No field options available. Please contact admin.
                     </div>
                   </SelectItem>
                 ) : (
