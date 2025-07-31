@@ -104,6 +104,15 @@ export interface EventTicket {
 
 // Custom authentication using our accounts and users tables
 export const authHelpers = {
+  // Cache for field options
+  _fieldOptionsCache: null as { data: string[]; timestamp: number } | null,
+
+  // Method to clear field options cache
+  clearFieldOptionsCache() {
+    this._fieldOptionsCache = null;
+    console.log('🗑️ Field options cache cleared');
+  },
+
   async signUp(email: string, password: string, profileData: { full_name: string; field_of_interest?: string; role?: 'Administrator' | 'Member' }) {
     try {
       // Hash password (in production, use bcrypt or similar)
@@ -583,6 +592,12 @@ export const authHelpers = {
 
       // Get field of interest options
       async getFieldOfInterestOptions(): Promise<string[]> {
+        // Simple cache to prevent repeated calls
+        if (this._fieldOptionsCache && this._fieldOptionsCache.timestamp > Date.now() - 30000) {
+          console.log('📋 Using cached field options');
+          return this._fieldOptionsCache.data;
+        }
+
         try {
           console.log('🔍 Fetching field_of_interest_options from database...');
           
@@ -603,9 +618,35 @@ export const authHelpers = {
           const fieldNames = data?.map(item => item.name) || [];
           console.log('✅ Extracted field names:', fieldNames);
           
+          // Validate that we got some data
+          if (fieldNames.length === 0) {
+            console.warn('⚠️ No field options found in database');
+          }
+          
+          // Cache the result for 30 seconds
+          this._fieldOptionsCache = {
+            data: fieldNames,
+            timestamp: Date.now()
+          };
+          
           return fieldNames;
         } catch (error) {
           console.error('💥 Error fetching field_of_interest options:', error);
+          
+          // Log specific error details
+          if (error.code) {
+            console.error('💥 Error code:', error.code);
+          }
+          if (error.message) {
+            console.error('💥 Error message:', error.message);
+          }
+          if (error.details) {
+            console.error('💥 Error details:', error.details);
+          }
+          if (error.hint) {
+            console.error('💥 Error hint:', error.hint);
+          }
+          
           // Return empty array instead of hardcoded values
           return [];
         }
