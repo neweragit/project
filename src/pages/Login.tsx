@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -62,6 +62,7 @@ export default function Login() {
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [developmentOtp, setDevelopmentOtp] = useState(''); // For development only
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loginForm, setLoginForm] = useState<LoginFormData>({
     email: '',
@@ -79,27 +80,47 @@ export default function Login() {
 
   // Load dynamic options from database
   useEffect(() => {
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+
     const fetchOptions = async () => {
       try {
+        if (!isMounted) return;
+        
         setIsLoadingOptions(true);
-        console.log('🔄 Login: Starting to fetch field options...');
+        console.log('🔄 Login: Starting to fetch field options... (attempt', retryCount + 1, ')');
         
         const [fields, roles] = await Promise.all([
           auth.getFieldOfInterestOptions(),
           auth.getUserRoleOptions()
         ]);
         
+        if (!isMounted) return;
+        
         console.log('📋 Login: Fetched field options:', fields);
         console.log('👥 Login: Fetched role options:', roles);
         console.log('📊 Login: Field options count:', fields.length);
         
-        setFieldOptions(fields);
-        // Remove duplicates from roles
-        const uniqueRoles = [...new Set(roles)];
-        setRoleOptions(uniqueRoles);
+        // Clear the timeout since we got data successfully
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+          console.log('⏰ Login: Timeout cleared - data loaded successfully');
+        }
         
-        console.log('✅ Login: Options loaded successfully');
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setFieldOptions(fields);
+          // Remove duplicates from roles
+          const uniqueRoles = [...new Set(roles)];
+          setRoleOptions(uniqueRoles);
+          
+          console.log('✅ Login: Options loaded successfully');
+        }
       } catch (error) {
+        if (!isMounted) return;
+        
         console.error('❌ Login: Error fetching options:', error);
         console.error('❌ Login: Error details:', {
           message: error.message,
@@ -107,18 +128,37 @@ export default function Login() {
           details: error.details,
           hint: error.hint
         });
+        
+        // Retry logic for failed requests
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`🔄 Login: Retrying... (${retryCount}/${maxRetries})`);
+          
+          // Wait 1 second before retrying
+          setTimeout(() => {
+            if (isMounted) {
+              fetchOptions();
+            }
+          }, 1000);
+          return;
+        }
+        
         // Only use dynamic data from database - no fallback options
-        setFieldOptions([]);
-        setRoleOptions(['Member']);
+        if (isMounted) {
+          setFieldOptions([]);
+          setRoleOptions(['Member']);
+        }
       } finally {
-        setIsLoadingOptions(false);
-        console.log('🏁 Login: Options loading finished');
+        if (isMounted) {
+          setIsLoadingOptions(false);
+          console.log('🏁 Login: Options loading finished');
+        }
       }
     };
 
     // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      if (isLoadingOptions) {
+    timeoutRef.current = setTimeout(() => {
+      if (isLoadingOptions && isMounted) {
         console.log('⏰ Login: Options loading timed out after 5 seconds');
         setIsLoadingOptions(false);
         setFieldOptions([]);
@@ -128,7 +168,13 @@ export default function Login() {
 
     fetchOptions();
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      isMounted = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, []);
 
   // Redirect if already logged in
