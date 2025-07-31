@@ -80,101 +80,28 @@ export default function Login() {
 
   // Load dynamic options from database
   useEffect(() => {
-    let isMounted = true;
-    let retryCount = 0;
-    const maxRetries = 3;
-
     const fetchOptions = async () => {
       try {
-        if (!isMounted) return;
-        
         setIsLoadingOptions(true);
-        console.log('🔄 Login: Starting to fetch field options... (attempt', retryCount + 1, ')');
         
         const [fields, roles] = await Promise.all([
           auth.getFieldOfInterestOptions(),
           auth.getUserRoleOptions()
         ]);
         
-        if (!isMounted) return;
+        setFieldOptions(fields);
+        setRoleOptions([...new Set(roles)]);
         
-        console.log('📋 Login: Fetched field options:', fields);
-        console.log('👥 Login: Fetched role options:', roles);
-        console.log('📊 Login: Field options count:', fields.length);
-        
-        // Clear the timeout since we got data successfully
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-          console.log('⏰ Login: Timeout cleared - data loaded successfully');
-        }
-        
-        // Only update state if component is still mounted
-        if (isMounted) {
-          setFieldOptions(fields);
-          // Remove duplicates from roles
-          const uniqueRoles = [...new Set(roles)];
-          setRoleOptions(uniqueRoles);
-          
-          console.log('✅ Login: Options loaded successfully');
-        }
       } catch (error) {
-        if (!isMounted) return;
-        
-        console.error('❌ Login: Error fetching options:', error);
-        console.error('❌ Login: Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
-        
-        // Retry logic for failed requests
-        if (retryCount < maxRetries) {
-          retryCount++;
-          console.log(`🔄 Login: Retrying... (${retryCount}/${maxRetries})`);
-          
-          // Wait 1 second before retrying
-          setTimeout(() => {
-            if (isMounted) {
-              fetchOptions();
-            }
-          }, 1000);
-          return;
-        }
-        
-        // Only use dynamic data from database - no fallback options
-        if (isMounted) {
-          setFieldOptions([]);
-          setRoleOptions(['Member']);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingOptions(false);
-          console.log('🏁 Login: Options loading finished');
-        }
-      }
-    };
-
-    // Add timeout to prevent infinite loading
-    timeoutRef.current = setTimeout(() => {
-      if (isLoadingOptions && isMounted) {
-        console.log('⏰ Login: Options loading timed out after 5 seconds');
-        setIsLoadingOptions(false);
+        console.error('Error loading options:', error);
         setFieldOptions([]);
         setRoleOptions(['Member']);
-      }
-    }, 5000); // 5 second timeout
-
-    fetchOptions();
-
-    return () => {
-      isMounted = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      } finally {
+        setIsLoadingOptions(false);
       }
     };
+
+    fetchOptions();
   }, []);
 
   // Redirect if already logged in
