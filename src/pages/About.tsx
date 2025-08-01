@@ -29,50 +29,51 @@ export default function About() {
       description: 'Maintaining the highest standards of research and scientific methodology.'
     }
   ];
-const missions = [
-  {
-    icon: Zap,
-    title: 'System Innovation',
-    description: 'Building modular systems and scalable architectures to empower digital solutions.',
-    progress: 90
-  },
-  {
-    icon: Brain,
-    title: 'Team Empowerment',
-    description: 'Fostering leadership, growth, and collaboration across interdisciplinary teams.',
-    progress: 88
-  },
-  {
-    icon: Atom,
-    title: 'Product Development',
-    description: 'From ideation to deployment, crafting tools that solve real-world problems.',
-    progress: 94
-  },
-  {
-    icon: Users,
-    title: 'Community Engagement',
-    description: 'Connecting with users and contributors to build impactful, inclusive platforms.',
-    progress: 81
-  }
-];
 
-const team = [
-  {
-    name: 'Sebabkhi Faress Eddine',
-    role: 'Lead Developer',
-    image: 'https://media.licdn.com/dms/image/v2/D4E35AQFvrbt-oWnX0Q/profile-framedphoto-shrink_400_400/B4EZclYZGTHkAg-/0/1748678840978?e=1754614800&v=beta&t=4CswAF4h36Vbms9huFlRrD4Y8Yk7Z8tMXRsOQaePhdY'
-  },
-  {
-    name: 'Seguéni Ali',
-    role: 'Manager',
-    image: '/avatars/02.png'
-  },
-  {
-    name: 'Abdelkarim Kamassi',
-    role: 'Deputy Manager',
-    image: '/avatars/03.png'
-  }
-];
+  const missions = [
+    {
+      icon: Zap,
+      title: 'System Innovation',
+      description: 'Building modular systems and scalable architectures to empower digital solutions.',
+      progress: 90
+    },
+    {
+      icon: Brain,
+      title: 'Team Empowerment',
+      description: 'Fostering leadership, growth, and collaboration across interdisciplinary teams.',
+      progress: 88
+    },
+    {
+      icon: Atom,
+      title: 'Product Development',
+      description: 'From ideation to deployment, crafting tools that solve real-world problems.',
+      progress: 94
+    },
+    {
+      icon: Users,
+      title: 'Community Engagement',
+      description: 'Connecting with users and contributors to build impactful, inclusive platforms.',
+      progress: 81
+    }
+  ];
+
+  const team = [
+    {
+      name: 'Sebabkhi Faress Eddine',
+      role: 'Lead Developer',
+      image: 'https://i.ibb.co/27dg1kZ/image.png'
+    },
+    {
+      name: 'Seguéni Ali',
+      role: 'Founder & Manager',
+      image: 'https://i.ibb.co/wNFPM8P/ali.png'
+    },
+    {
+      name: 'Abdelkarim Kamassi',
+      role: 'Deputy Manager',
+      image: 'https://i.ibb.co/GVtq3p1/kamassi.png'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-starfield starfield">
@@ -162,11 +163,11 @@ const team = [
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
-                { letter: 'N', title: 'Nurture', description: 'We nurture talent, ideas, and collaboration — planting the seeds of tomorrow’s breakthroughs.' },
+                { letter: 'N', title: 'Nurture', description: 'We nurture talent, ideas, and collaboration — planting the seeds of tomorrow's breakthroughs.' },
                 { letter: 'E', title: 'Elevate', description: 'We elevate ambitions, turning ordinary efforts into extraordinary outcomes.' },
                 { letter: 'W', title: 'Wisdom', description: 'We draw on wisdom from diverse experiences, blending knowledge with imagination to craft pioneering solutions.' },
                 { letter: 'E', title: 'Empower', description: 'We empower one another to explore boldly, lead confidently, and innovate fearlessly.' },
-                { letter: 'R', title: 'Reimagine', description: 'We reimagine what’s possible, challenging the status quo to build something greater.' },
+                { letter: 'R', title: 'Reimagine', description: 'We reimagine what's possible, challenging the status quo to build something greater.' },
                 { letter: 'A', title: 'Aspire', description: 'We aspire to reach the peak — not just for ourselves, but to shape a brighter future.' },
               ].map((val, index) => (
                 <Card key={val.title} className="card-cosmic text-center animate-fade-in-delayed" style={{ animationDelay: `${index * 0.1}s` }}>
@@ -252,23 +253,32 @@ const team = [
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {team.map((member, index) => (
                   <div
                     key={member.name}
                     className="animate-fade-in-delayed"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <Card className="card-cosmic text-center">
-                      <div className="w-24 h-24 mx-auto mb-4 bg-gradient-cosmic rounded-full flex items-center justify-center">
-                        <User className="w-12 h-12 text-white" />
+                    <Card className="card-cosmic text-center p-6">
+                      <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-2 border-primary/20">
+                        <img 
+                          src={member.image} 
+                          alt={member.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <h3 className="text-lg font-orbitron font-bold mb-1 text-primary">
+                      <h3 className="text-xl font-orbitron font-bold mb-1 text-primary">
                         {member.name}
                       </h3>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground mb-4">
                         {member.role}
                       </p>
+                      <div className="flex justify-center space-x-4">
+                        <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10">
+                          View Profile
+                        </Button>
+                      </div>
                     </Card>
                   </div>
                 ))}
