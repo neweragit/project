@@ -162,13 +162,13 @@ export default function About() {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                { letter: 'N', title: 'Nurture', description: 'We nurture talent, ideas, and collaboration — planting the seeds of tomorrow's breakthroughs.' },
-                { letter: 'E', title: 'Elevate', description: 'We elevate ambitions, turning ordinary efforts into extraordinary outcomes.' },
-                { letter: 'W', title: 'Wisdom', description: 'We draw on wisdom from diverse experiences, blending knowledge with imagination to craft pioneering solutions.' },
-                { letter: 'E', title: 'Empower', description: 'We empower one another to explore boldly, lead confidently, and innovate fearlessly.' },
-                { letter: 'R', title: 'Reimagine', description: 'We reimagine what's possible, challenging the status quo to build something greater.' },
-                { letter: 'A', title: 'Aspire', description: 'We aspire to reach the peak — not just for ourselves, but to shape a brighter future.' },
+       {[
+  { letter: 'N', title: 'Nurture', description: 'We nurture talent, ideas, and collaboration — planting the seeds of tomorrow\'s breakthroughs.' },
+  { letter: 'E', title: 'Elevate', description: 'We elevate ambitions, turning ordinary efforts into extraordinary outcomes.' },
+  { letter: 'W', title: 'Wisdom', description: 'We draw on wisdom from diverse experiences, blending knowledge with imagination to craft pioneering solutions.' },
+  { letter: 'E', title: 'Empower', description: 'We empower one another to explore boldly, lead confidently, and innovate fearlessly.' },
+  { letter: 'R', title: 'Reimagine', description: 'We reimagine what\'s possible, challenging the status quo to build something greater.' },
+  { letter: 'A', title: 'Aspire', description: 'We aspire to reach the peak — not just for ourselves, but to shape a brighter future.' },
               ].map((val, index) => (
                 <Card key={val.title} className="card-cosmic text-center animate-fade-in-delayed" style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="w-12 h-12 mx-auto mb-4 bg-gradient-cosmic rounded-full flex items-center justify-center text-white text-xl font-bold">
