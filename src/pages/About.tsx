@@ -61,12 +61,12 @@ export default function About() {
     {
       name: 'Sebabkhi Faress Eddine',
       role: 'Lead Developer',
-      image: 'https://i.ibb.co/27dg1kZ/image.png'
+      image: 'https://media.licdn.com/dms/image/v2/D4E35AQFvrbt-oWnX0Q/profile-framedphoto-shrink_400_400/B4EZclYZGTHkAg-/0/1748678840978?e=1754614800&v=beta&t=4CswAF4h36Vbms9huFlRrD4Y8Yk7Z8tMXRsOQaePhdY'
     },
     {
       name: 'Seguéni Ali',
       role: 'Founder & Manager',
-      image: 'https://i.ibb.co/wNFPM8P/ali.png'
+      image: 'https://i.ibb.co/27dg1kZ9/image.png'
     },
     {
       name: 'Abdelkarim Kamassi',
