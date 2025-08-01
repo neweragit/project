@@ -29,56 +29,50 @@ export default function About() {
       description: 'Maintaining the highest standards of research and scientific methodology.'
     }
   ];
+const missions = [
+  {
+    icon: Zap,
+    title: 'System Innovation',
+    description: 'Building modular systems and scalable architectures to empower digital solutions.',
+    progress: 90
+  },
+  {
+    icon: Brain,
+    title: 'Team Empowerment',
+    description: 'Fostering leadership, growth, and collaboration across interdisciplinary teams.',
+    progress: 88
+  },
+  {
+    icon: Atom,
+    title: 'Product Development',
+    description: 'From ideation to deployment, crafting tools that solve real-world problems.',
+    progress: 94
+  },
+  {
+    icon: Users,
+    title: 'Community Engagement',
+    description: 'Connecting with users and contributors to build impactful, inclusive platforms.',
+    progress: 81
+  }
+];
 
-  const missions = [
-    {
-      icon: Globe,
-      title: 'Planetary Research',
-      description: 'Studying Earth and other planets to understand climate, geology, and potential for life.',
-      progress: 85
-    },
-    {
-      icon: Zap,
-      title: 'Energy Innovation',
-      description: 'Developing sustainable energy solutions for space exploration and Earth applications.',
-      progress: 72
-    },
-    {
-      icon: Brain,
-      title: 'AI & Robotics',
-      description: 'Creating intelligent systems to assist in space exploration and scientific research.',
-      progress: 91
-    },
-    {
-      icon: Star,
-      title: 'Deep Space',
-      description: 'Exploring the cosmos to understand our universe and search for extraterrestrial life.',
-      progress: 68
-    }
-  ];
-
-  const team = [
-    {
-      name: 'Dr. Elena Vasquez',
-      role: 'Director of Space Sciences',
-      image: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Prof. Marcus Chen',
-      role: 'Lead AI Researcher',
-      image: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Dr. Sarah Johnson',
-      role: 'Planetary Geologist',
-      image: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Dr. Ahmed Hassan',
-      role: 'Quantum Computing Specialist',
-      image: '/api/placeholder/150/150'
-    }
-  ];
+const team = [
+  {
+    name: 'Sebabkhi Faress Eddine',
+    role: 'Lead Developer',
+    image: 'https://media.licdn.com/dms/image/v2/D4E35AQFvrbt-oWnX0Q/profile-framedphoto-shrink_400_400/B4EZclYZGTHkAg-/0/1748678840978?e=1754614800&v=beta&t=4CswAF4h36Vbms9huFlRrD4Y8Yk7Z8tMXRsOQaePhdY'
+  },
+  {
+    name: 'Seguéni Ali',
+    role: 'Manager',
+    image: '/avatars/02.png'
+  },
+  {
+    name: 'Abdelkarim Kamassi',
+    role: 'Deputy Manager',
+    image: '/avatars/03.png'
+  }
+];
 
   return (
     <div className="min-h-screen bg-gradient-starfield starfield">
