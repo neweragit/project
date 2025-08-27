@@ -6,6 +6,8 @@ import { BookOpen, Filter, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -40,6 +42,13 @@ const Courses = () => {
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [fieldsOfInterest, setFieldsOfInterest] = useState<FieldOfInterest[]>([]);
   const [selectedFields, setSelectedFields] = useState<number[]>([]);
+  const [courseFilters, setCourseFilters] = useState({
+    status: 'all',
+    type: 'all',
+    dateType: 'all' // 'all', 'permanent', 'temporary'
+  });
+  const [courseTypes, setCourseTypes] = useState<{ id: number; name: string; display_name: string }[]>([]);
+  const [courseStatuses, setCourseStatuses] = useState<{ id: number; name: string; display_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -112,6 +121,29 @@ const Courses = () => {
         // Show all courses (active, expired, upcoming, etc.)
         const allCourses = coursesWithFields;
 
+        // Load course types and statuses for filters
+        const { data: typesData, error: typesError } = await supabase
+          .from('course_types')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (typesError) {
+          console.error('Error loading course types:', typesError);
+        } else {
+          setCourseTypes(typesData || []);
+        }
+
+        const { data: statusesData, error: statusesError } = await supabase
+          .from('course_statuses')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (statusesError) {
+          console.error('Error loading course statuses:', statusesError);
+        } else {
+          setCourseStatuses(statusesData || []);
+        }
+
         // Sort courses by status priority, then by start date
         const sortedCourses = allCourses.sort((a, b) => {
           // Priority order: active -> upcoming -> expired -> archived
@@ -123,7 +155,16 @@ const Courses = () => {
             return priorityA - priorityB;
           }
 
-          // If same status, sort by start date
+          // If same status, sort by start date (permanent courses last)
+          if (!a.start_date && !b.start_date) {
+            return 0; // Both permanent, maintain current order
+          }
+          if (!a.start_date) {
+            return 1; // a is permanent, comes after b
+          }
+          if (!b.start_date) {
+            return -1; // b is permanent, a comes before b
+          }
           const dateA = new Date(a.start_date);
           const dateB = new Date(b.start_date);
           return dateA.getTime() - dateB.getTime();
@@ -142,17 +183,36 @@ const Courses = () => {
     loadData();
   }, [userProfile]);
 
-  // Filter courses based on selected fields
+  // Filter courses based on selected fields and filters
   useEffect(() => {
-    if (selectedFields.length === 0) {
-      setCourses(allCourses);
-    } else {
-      const filteredCourses = allCourses.filter(course =>
+    let filteredCourses = allCourses;
+
+    // Filter by field of interest
+    if (selectedFields.length > 0) {
+      filteredCourses = filteredCourses.filter(course =>
         course.field_of_interest_id && selectedFields.includes(course.field_of_interest_id)
       );
-      setCourses(filteredCourses);
     }
-  }, [selectedFields, allCourses]);
+
+    // Filter by status
+    if (courseFilters.status !== 'all') {
+      filteredCourses = filteredCourses.filter(course => course.status === courseFilters.status);
+    }
+
+    // Filter by course type
+    if (courseFilters.type !== 'all') {
+      filteredCourses = filteredCourses.filter(course => course.course_type === courseFilters.type);
+    }
+
+    // Filter by date type
+    if (courseFilters.dateType === 'permanent') {
+      filteredCourses = filteredCourses.filter(course => !course.start_date);
+    } else if (courseFilters.dateType === 'temporary') {
+      filteredCourses = filteredCourses.filter(course => course.start_date);
+    }
+
+    setCourses(filteredCourses);
+  }, [selectedFields, courseFilters, allCourses]);
 
   const toggleFieldFilter = (fieldId: number) => {
     setSelectedFields(prev =>
@@ -164,6 +224,7 @@ const Courses = () => {
 
   const clearFilters = () => {
     setSelectedFields([]);
+    setCourseFilters({ status: 'all', type: 'all', dateType: 'all' });
   };
 
   return (
@@ -215,15 +276,43 @@ const Courses = () => {
 
               {/* Desktop Filters */}
               <div className="hidden lg:flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
-                  All Categories
-                </Button>
-                <Button variant="outline" size="sm">
-                  This Month
-                </Button>
-                <Button variant="outline" size="sm">
-                  Online Courses
+                <Select value={courseFilters.status} onValueChange={(value) => setCourseFilters({...courseFilters, status: value})}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    {courseStatuses.map(status => (
+                      <SelectItem key={status.id} value={status.name}>{status.display_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={courseFilters.type} onValueChange={(value) => setCourseFilters({...courseFilters, type: value})}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {courseTypes.map(type => (
+                      <SelectItem key={type.id} value={type.name}>{type.display_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={courseFilters.dateType} onValueChange={(value) => setCourseFilters({...courseFilters, dateType: value})}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Date Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Dates</SelectItem>
+                    <SelectItem value="permanent">Permanent</SelectItem>
+                    <SelectItem value="temporary">Temporary</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button onClick={() => setCourseFilters({ status: 'all', type: 'all', dateType: 'all' })} variant="outline" size="sm">
+                  Clear Filters
                 </Button>
               </div>
             </div>
@@ -232,35 +321,94 @@ const Courses = () => {
           {/* Mobile Filters Panel */}
           {showMobileFilters && (
             <div className="mt-4 p-4 bg-card border rounded-lg lg:hidden">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-sm">Filter by Field of Interest</h3>
-                {selectedFields.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-xs"
-                  >
-                    Clear All
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {fieldsOfInterest.map(field => (
-                  <Button
-                    key={field.id}
-                    variant={selectedFields.includes(field.id) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleFieldFilter(field.id)}
-                    className="text-xs"
-                  >
-                    {field.name}
-                    {selectedFields.includes(field.id) && (
-                      <X className="w-3 h-3 ml-1" />
+              <div className="space-y-4">
+                {/* Field of Interest Filters */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium text-sm">Filter by Field of Interest</h3>
+                    {selectedFields.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedFields([])}
+                        className="text-xs"
+                      >
+                        Clear All
+                      </Button>
                     )}
-                  </Button>
-                ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {fieldsOfInterest.map(field => (
+                      <Button
+                        key={field.id}
+                        variant={selectedFields.includes(field.id) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleFieldFilter(field.id)}
+                        className="text-xs"
+                      >
+                        {field.name}
+                        {selectedFields.includes(field.id) && (
+                          <X className="w-3 h-3 ml-1" />
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Course Filters */}
+                <div>
+                  <h3 className="font-medium text-sm mb-3">Course Filters</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Status</Label>
+                      <Select value={courseFilters.status} onValueChange={(value) => setCourseFilters({...courseFilters, status: value})}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          {courseStatuses.map(status => (
+                            <SelectItem key={status.id} value={status.name}>{status.display_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Type</Label>
+                      <Select value={courseFilters.type} onValueChange={(value) => setCourseFilters({...courseFilters, type: value})}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="All Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Types</SelectItem>
+                          {courseTypes.map(type => (
+                            <SelectItem key={type.id} value={type.name}>{type.display_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Date Type</Label>
+                      <Select value={courseFilters.dateType} onValueChange={(value) => setCourseFilters({...courseFilters, dateType: value})}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="All Dates" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Dates</SelectItem>
+                          <SelectItem value="permanent">Permanent</SelectItem>
+                          <SelectItem value="temporary">Temporary</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button onClick={() => setCourseFilters({ status: 'all', type: 'all', dateType: 'all' })} variant="outline" size="sm" className="w-full">
+                      Clear Course Filters
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -15,7 +15,7 @@ interface Course {
   course_type: string;
   status_id: number | null;
   status: string;
-  start_date: string;
+  start_date: string | null;
   end_date: string | null;
   link: string | null;
   image_url: string | null;
@@ -185,7 +185,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onEnrollmentChange }) =
     return typeMap[courseType.toLowerCase()] || courseType;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) {
+      return 'Permanent';
+    }
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -262,7 +265,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onEnrollmentChange }) =
             <Calendar className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
             <span className="truncate">
               {formatDate(course.start_date)}
-              {course.end_date && ` - ${formatDate(course.end_date)}`}
+              {course.start_date && course.end_date && ` - ${formatDate(course.end_date)}`}
             </span>
           </div>
 

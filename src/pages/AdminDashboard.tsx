@@ -151,7 +151,7 @@ interface Course {
   course_type: string;
   status_id: number | null;
   status: string;
-  start_date: string;
+  start_date: string | null;
   end_date: string | null;
   link: string | null;
   image_url: string | null;
@@ -193,6 +193,7 @@ const AdminDashboard: React.FC = () => {
   const [fields, setFields] = useState<Field[]>([]);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [recentActions, setRecentActions] = useState<AdminAction[]>([]);
+  const [courseEnrollmentStats, setCourseEnrollmentStats] = useState<{ title: string; count: number }[]>([]);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -257,7 +258,12 @@ const AdminDashboard: React.FC = () => {
   const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [showDeleteCourseDialog, setShowDeleteCourseDialog] = useState(false);
-  const [coursesTab, setCoursesTab] = useState<'courses' | 'types'>('courses');
+  const [coursesTab, setCoursesTab] = useState<'courses' | 'types' | 'filters'>('courses');
+  const [courseFilters, setCourseFilters] = useState({
+    status: 'all',
+    type: 'all',
+    dateType: 'all' // 'all', 'permanent', 'temporary'
+  });
   const [isCourseTypeDialogOpen, setIsCourseTypeDialogOpen] = useState(false);
   const [editingCourseType, setEditingCourseType] = useState<{ id: number; name: string; variant?: string } | null>(null);
   const [courseTypeForm, setCourseTypeForm] = useState({ name: '', display_name: '', variant: 'outline', is_active: true });
@@ -269,8 +275,8 @@ const AdminDashboard: React.FC = () => {
     course_type: '',
     status_id: null as number | null,
     status: '',
-    start_date: '',
-    end_date: '',
+    start_date: null as string | null,
+    end_date: null as string | null,
     link: '',
     image_url: '',
     field_of_interest_id: null as number | null
@@ -586,6 +592,27 @@ const AdminDashboard: React.FC = () => {
           avgAttendees: totalEvents > 0 ? Math.round(totalAttendees / totalEvents) : 0
         });
 
+        // Fetch course enrollment statistics
+        const enrollmentStatsQuery = supabase
+          .from('courses')
+          .select(`
+            title,
+            course_enrollments(count)
+          `);
+
+        const { data: enrollmentStatsData, error: enrollmentStatsError } = await enrollmentStatsQuery;
+
+        if (enrollmentStatsError) {
+          console.error('Course enrollment stats fetch error:', enrollmentStatsError);
+          setCourseEnrollmentStats([]);
+        } else {
+          const stats = (enrollmentStatsData || []).map(course => ({
+            title: course.title,
+            count: course.course_enrollments?.[0]?.count || 0
+          })).sort((a, b) => b.count - a.count);
+          setCourseEnrollmentStats(stats);
+        }
+
         // Mock recent actions
         setRecentActions([
           { id: '1', action: 'Created', target: 'New Event: Quantum Computing Workshop', timestamp: '2 hours ago', user: 'Admin' },
@@ -754,8 +781,8 @@ const AdminDashboard: React.FC = () => {
       course_type: '',
       status_id: defaultStatus ? defaultStatus.id : null,
       status: defaultStatus ? defaultStatus.name : '',
-      start_date: '',
-      end_date: '',
+      start_date: null,
+      end_date: null,
       link: '',
       image_url: '',
       field_of_interest_id: null
@@ -818,8 +845,8 @@ const AdminDashboard: React.FC = () => {
       let imageUrl = courseForm.image_url;
       
       // Validate form
-      if (!courseForm.title || !courseForm.start_date || !courseForm.course_type_id || !courseForm.status_id) {
-        throw new Error('Title, start date, course type, and status are required');
+      if (!courseForm.title || !courseForm.course_type_id || !courseForm.status_id) {
+        throw new Error('Title, course type, and status are required');
       }
       
       setEventProgress(20);
@@ -1332,10 +1359,15 @@ const AdminDashboard: React.FC = () => {
         );
       }
     },
-    { 
-      accessorKey: 'start_date', 
+    {
+      accessorKey: 'start_date',
       header: 'Start Date',
-      cell: ({ row }: any) => new Date(row.original.start_date).toLocaleDateString()
+      cell: ({ row }: any) => {
+        if (!row.original.start_date) {
+          return <Badge variant="secondary">Permanent</Badge>;
+        }
+        return new Date(row.original.start_date).toLocaleDateString();
+      }
     },
     { 
       accessorKey: 'end_date', 
@@ -1525,6 +1557,7 @@ const AdminDashboard: React.FC = () => {
                   {item.label}
                 </Button>
               ))}
+
               
               <div className="pt-4 lg:pt-4 border-t border-border/50">
               <Button
@@ -1772,74 +1805,46 @@ const AdminDashboard: React.FC = () => {
                       </Card>
                     </div>
                     
-                    {/* Monthly Events Line Chart */}
+                    {/* Course Enrollment Histogram */}
                     <div className="mt-4 lg:mt-6">
                       <Card className="p-3 lg:p-4">
-                        <h3 className="text-base lg:text-lg font-semibold mb-3 lg:mb-4">Monthly Events Trend</h3>
+                        <h3 className="text-base lg:text-lg font-semibold mb-3 lg:mb-4">Course Enrollment Histogram</h3>
                         <div className="h-[300px] lg:h-[400px]">
-                          <ResponsiveLine
-                            data={[
-                              {
-                                id: 'Events',
-                                color: 'hsl(221, 83%, 53%)',
-                                data: getEventsPerMonth(events).map(item => ({
-                                  x: item.month,
-                                  y: item.events
-                                }))
-                              }
-                            ]}
-                            margin={{ top: 20, right: 20, bottom: 40, left: 60 }}
-                            xScale={{ type: 'point' }}
-                            yScale={{ type: 'linear', min: 'auto', max: 'auto', stacked: true, reverse: false }}
-                            axisTop={null}
-                            axisRight={null}
+                          <ResponsiveBar
+                            data={courseEnrollmentStats}
+                            keys={['count']}
+                            indexBy="title"
+                            margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
+                            padding={0.3}
+                            colors={{ scheme: 'paired' }}
                             axisBottom={{
                               tickSize: 5,
                               tickPadding: 5,
                               tickRotation: -45,
-                              legend: 'Month',
-                              legendOffset: 40,
-                              legendPosition: 'middle'
+                              legend: 'Course Title',
+                              legendPosition: 'middle',
+                              legendOffset: 40
                             }}
                             axisLeft={{
                               tickSize: 5,
                               tickPadding: 5,
                               tickRotation: 0,
-                              legend: 'Number of Events',
-                              legendOffset: -50,
-                              legendPosition: 'middle'
+                              legend: 'Number of Enrollments',
+                              legendPosition: 'middle',
+                              legendOffset: -50
                             }}
-                            pointSize={10}
-                            pointColor={{ theme: 'background' }}
-                            pointBorderWidth={2}
-                            pointBorderColor={{ from: 'serieColor' }}
-                            pointLabelYOffset={-12}
-                            useMesh={true}
-                            legends={[
-                              {
-                                anchor: 'top',
-                                direction: 'row',
-                                justify: false,
-                                translateX: 0,
-                                translateY: -20,
-                                itemsSpacing: 0,
-                                itemDirection: 'left-to-right',
-                                itemWidth: 80,
-                                itemHeight: 20,
-                                itemOpacity: 0.75,
-                                symbolSize: 12,
-                                symbolShape: 'circle',
-                                effects: [
-                                  {
-                                    on: 'hover',
-                                    style: {
-                                      itemBackground: 'rgba(0, 0, 0, .03)',
-                                      itemOpacity: 1
-                                    }
-                                  }
-                                ]
-                              }
-                            ]}
+                            labelSkipWidth={12}
+                            labelSkipHeight={12}
+                            labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
+                            animate={true}
+                            motionConfig={{
+                              mass: 1,
+                              tension: 120,
+                              friction: 14,
+                              clamp: false,
+                              precision: 0.01,
+                              velocity: 0
+                            }}
                           />
                         </div>
                       </Card>
@@ -1971,11 +1976,16 @@ const AdminDashboard: React.FC = () => {
                         <div className="flex space-x-2">
                           <Button variant={coursesTab === 'courses' ? 'default' : 'ghost'} size="sm" onClick={() => setCoursesTab('courses')}>Courses Management</Button>
                           <Button variant={coursesTab === 'types' ? 'default' : 'ghost'} size="sm" onClick={() => setCoursesTab('types')}>Course Types</Button>
+                          <Button variant={coursesTab === 'filters' ? 'default' : 'ghost'} size="sm" onClick={() => setCoursesTab('filters')}>Filters</Button>
                         </div>
                         <div>
                           {coursesTab === 'courses' ? (
                             <Button onClick={handleAddCourse} size="sm">
                               <Plus className="mr-2 h-4 w-4" /> Add Course
+                            </Button>
+                          ) : coursesTab === 'types' ? (
+                            <Button onClick={() => { setEditingCourseType(null); setCourseTypeForm({ name: '', display_name: '', variant: 'outline', is_active: true }); setIsCourseTypeDialogOpen(true); }} size="sm">
+                              <Plus className="mr-2 h-4 w-4" /> Add Type
                             </Button>
                           ) : null}
                         </div>
@@ -2033,24 +2043,113 @@ const AdminDashboard: React.FC = () => {
                           </Card>
                         </div>
                       )}
+
+                      {coursesTab === 'filters' && (
+                        <div className="space-y-4">
+                          <Card className="p-4">
+                            <h3 className="text-lg font-medium mb-4">Course Filters</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <Label htmlFor="status-filter">Status</Label>
+                                <Select value={courseFilters.status} onValueChange={(value) => setCourseFilters({...courseFilters, status: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="All statuses" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Statuses</SelectItem>
+                                    {courseStatuses.map(status => (
+                                      <SelectItem key={status.id} value={status.name}>{status.display_name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label htmlFor="type-filter">Course Type</Label>
+                                <Select value={courseFilters.type} onValueChange={(value) => setCourseFilters({...courseFilters, type: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="All types" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    {courseTypes.map(type => (
+                                      <SelectItem key={type.id} value={type.name}>{type.display_name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label htmlFor="date-filter">Date Type</Label>
+                                <Select value={courseFilters.dateType} onValueChange={(value) => setCourseFilters({...courseFilters, dateType: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="All courses" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Courses</SelectItem>
+                                    <SelectItem value="permanent">Permanent Courses</SelectItem>
+                                    <SelectItem value="temporary">Temporary Courses</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div className="mt-4 flex gap-2">
+                              <Button onClick={() => setCourseFilters({ status: 'all', type: 'all', dateType: 'all' })} variant="outline" size="sm">
+                                Clear Filters
+                              </Button>
+                              <Button onClick={() => setCoursesTab('courses')} size="sm">
+                                Apply Filters
+                              </Button>
+                            </div>
+                          </Card>
+                        </div>
+                      )}
                     </div>
 
                     {coursesTab === 'courses' && (
                       <Card className="p-4">
-                        {courses.length === 0 ? (
-                          <div className="p-6 text-center">
-                            <p className="mb-4 text-muted-foreground">No courses yet. Click "Add Course" to create one.</p>
-                            <Button onClick={handleAddCourse} variant="ghost">
-                              <Plus className="mr-2 h-4 w-4" /> Create your first course
-                            </Button>
-                          </div>
-                        ) : (
-                          <DataTable
-                            columns={courseColumns}
-                            data={courses}
-                            searchKey="title"
-                          />
-                        )}
+                        {(() => {
+                          // Apply filters to courses
+                          const filteredCourses = courses.filter(course => {
+                            // Status filter
+                            if (courseFilters.status !== 'all' && course.status !== courseFilters.status) {
+                              return false;
+                            }
+                            // Type filter
+                            if (courseFilters.type !== 'all' && course.course_type !== courseFilters.type) {
+                              return false;
+                            }
+                            // Date type filter
+                            if (courseFilters.dateType === 'permanent' && course.start_date) {
+                              return false;
+                            }
+                            if (courseFilters.dateType === 'temporary' && !course.start_date) {
+                              return false;
+                            }
+                            return true;
+                          });
+
+                          return filteredCourses.length === 0 ? (
+                            <div className="p-6 text-center">
+                              <p className="mb-4 text-muted-foreground">
+                                {courses.length === 0 ? 'No courses yet. Click "Add Course" to create one.' : 'No courses match the selected filters.'}
+                              </p>
+                              {courses.length === 0 ? (
+                                <Button onClick={handleAddCourse} variant="ghost">
+                                  <Plus className="mr-2 h-4 w-4" /> Create your first course
+                                </Button>
+                              ) : (
+                                <Button onClick={() => setCourseFilters({ status: 'all', type: 'all', dateType: 'all' })} variant="ghost">
+                                  Clear Filters
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <DataTable
+                              columns={courseColumns}
+                              data={filteredCourses}
+                              searchKey="title"
+                            />
+                          );
+                        })()}
                       </Card>
                     )}
                   </div>
@@ -2714,13 +2813,14 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="start_date">Start Date</Label>
+                <Label htmlFor="start_date">Start Date <span className="text-sm text-muted-foreground">(Optional)</span></Label>
                 <Input
                   id="start_date"
                   type="date"
-                  value={courseForm.start_date}
-                  onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value })}
+                  value={courseForm.start_date || ''}
+                  onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value || null })}
                   disabled={isCreatingEvent}
+                  placeholder="Leave empty for permanent courses"
                 />
               </div>
 
@@ -2983,15 +3083,3 @@ const AdminDashboard: React.FC = () => {
 };
 
 export default AdminDashboard;
-
-// Helper function to get events per month
-type MonthData = { month: string; events: number };
-function getEventsPerMonth(events: Event[]): MonthData[] {
-  const monthMap: { [key: string]: number } = {};
-  events.forEach(e => {
-    const date = new Date(e.date);
-    const month = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-    monthMap[month] = (monthMap[month] || 0) + 1;
-  });
-  return Object.entries(monthMap).map(([month, events]) => ({ month, events }));
-}
