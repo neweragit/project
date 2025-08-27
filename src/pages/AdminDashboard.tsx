@@ -869,8 +869,14 @@ const AdminDashboard: React.FC = () => {
       
       const courseData = {
         ...courseForm,
-        image_url: imageUrl
+        image_url: imageUrl,
+        // Ensure date fields are properly formatted for database
+        start_date: courseForm.start_date === '' ? null : courseForm.start_date,
+        end_date: courseForm.end_date === '' ? null : courseForm.end_date
       };
+
+      // Debug: Log the data being sent to database
+      console.log('Course data being sent to database:', courseData);
       
       if (editingCourse) {
         const { error } = await supabase
@@ -1241,7 +1247,9 @@ const AdminDashboard: React.FC = () => {
 
       const eventData = {
         ...eventForm,
-        image_url: imageUrl
+        image_url: imageUrl,
+        // Ensure date field is properly formatted
+        date: eventForm.date || null
       };
 
       // Stage 3: Save to database (60%)
@@ -2818,7 +2826,7 @@ const AdminDashboard: React.FC = () => {
                   id="start_date"
                   type="date"
                   value={courseForm.start_date || ''}
-                  onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value || null })}
+                  onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value === '' ? null : e.target.value })}
                   disabled={isCreatingEvent}
                   placeholder="Leave empty for permanent courses"
                 />
@@ -2829,8 +2837,8 @@ const AdminDashboard: React.FC = () => {
                 <Input
                   id="end_date"
                   type="date"
-                  value={courseForm.end_date}
-                  onChange={(e) => setCourseForm({ ...courseForm, end_date: e.target.value })}
+                  value={courseForm.end_date || ''}
+                  onChange={(e) => setCourseForm({ ...courseForm, end_date: e.target.value === '' ? null : e.target.value })}
                   disabled={isCreatingEvent}
                 />
               </div>
