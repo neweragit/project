@@ -9,11 +9,13 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Events from "./pages/Events";
+import Courses from "./pages/Courses";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import AdminDashboard from "./pages/AdminDashboard";
+import MyDashboard from "./pages/MyDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -92,9 +94,11 @@ const App = () => {
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/events" element={<Events />} />
+                    <Route path="/courses" element={<Courses />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/dashboard" element={<MyDashboard />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/admin" element={<AdminDashboard />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

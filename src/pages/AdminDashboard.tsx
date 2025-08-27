@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils';
 import { auth, supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+ 
 import { DataTable } from '@/components/ui/data-table';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
@@ -47,12 +48,16 @@ import {
   ChevronDown,
   Home,
   Mail,
-  Ticket as TicketIcon
+  Ticket as TicketIcon,
+  BookOpen
 } from 'lucide-react';
 import { ResponsivePie } from '@nivo/pie';
 import { ResponsiveBar } from '@nivo/bar';
 import logo from '@/assets/logo.png';
 import { ResponsiveLine } from '@nivo/line';
+
+import { Link as LinkIcon } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
 
 interface Stats {
   totalUsers: number;
@@ -101,6 +106,23 @@ interface Field {
   created_at: string;
 }
 
+interface NavigationItem {
+  name: string;
+  icon: React.ElementType;
+  tab: ActiveTab;
+}
+
+const navigationItems: NavigationItem[] = [
+  { name: 'Overview', icon: Home, tab: 'overview' },
+  { name: 'Users', icon: Users, tab: 'users' },
+  { name: 'Events', icon: Calendar, tab: 'events' },
+  { name: 'Courses', icon: BookOpen, tab: 'courses' },
+  { name: 'Enrollments', icon: UserCheck, tab: 'enrollments' },
+  { name: 'Fields', icon: Globe, tab: 'fields' },
+  { name: 'Messages', icon: Mail, tab: 'messages' },
+  { name: 'Tickets', icon: TicketIcon, tab: 'tickets' },
+];
+
 interface ContactMessage {
   id: string;
   first_name: string;
@@ -121,6 +143,23 @@ interface AdminAction {
   user: string;
 }
 
+interface Course {
+  id: string;
+  title: string;
+  description: string | null;
+  course_type_id: number | null;
+  course_type: string;
+  status_id: number | null;
+  status: string;
+  start_date: string;
+  end_date: string | null;
+  link: string | null;
+  image_url: string | null;
+  field_of_interest_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface Ticket {
   id: string;
   event_id: string;
@@ -130,7 +169,7 @@ interface Ticket {
   user?: { id: string; full_name: string; email: string };
 }
 
-type ActiveTab = 'overview' | 'users' | 'events' | 'fields' | 'messages' | 'tickets';
+type ActiveTab = 'overview' | 'users' | 'events' | 'fields' | 'messages' | 'tickets' | 'courses' | 'enrollments';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -202,7 +241,44 @@ const AdminDashboard: React.FC = () => {
   const [showDeleteTicketDialog, setShowDeleteTicketDialog] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
 
-  const { user, userProfile, loading } = useAuth();
+  // Course states
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [courseTypes, setCourseTypes] = useState<{ id: number; name: string; display_name: string; variant: string; is_active: boolean }[]>([]);
+  const [courseStatuses, setCourseStatuses] = useState<{ id: number; name: string; display_name: string; variant: string; is_active: boolean }[]>([]);
+  const [showCourseEnrolleesDialog, setShowCourseEnrolleesDialog] = useState(false);
+  const [selectedCourseEnrollees, setSelectedCourseEnrollees] = useState<any[]>([]);
+
+  // User enrollments management states
+  const [userEnrollments, setUserEnrollments] = useState<any[]>([]);
+  const [loadingUserEnrollments, setLoadingUserEnrollments] = useState(false);
+  const [showRemoveEnrollmentDialog, setShowRemoveEnrollmentDialog] = useState(false);
+  const [enrollmentToRemove, setEnrollmentToRemove] = useState<any>(null);
+  const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [showDeleteCourseDialog, setShowDeleteCourseDialog] = useState(false);
+  const [coursesTab, setCoursesTab] = useState<'courses' | 'types'>('courses');
+  const [isCourseTypeDialogOpen, setIsCourseTypeDialogOpen] = useState(false);
+  const [editingCourseType, setEditingCourseType] = useState<{ id: number; name: string; variant?: string } | null>(null);
+  const [courseTypeForm, setCourseTypeForm] = useState({ name: '', display_name: '', variant: 'outline', is_active: true });
+  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+  const [courseForm, setCourseForm] = useState({
+    title: '',
+    description: '',
+    course_type_id: null as number | null,
+    course_type: '',
+    status_id: null as number | null,
+    status: '',
+    start_date: '',
+    end_date: '',
+    link: '',
+    image_url: '',
+    field_of_interest_id: null as number | null
+  });
+  const [selectedCourseFields, setSelectedCourseFields] = useState<number[]>([]);
+  const [fieldOfInterestOptions, setFieldOfInterestOptions] = useState<{ id: number; name: string; display_order: number; is_active: boolean }[]>([]);
+
+  const { user, userProfile, signOut, loading: authLoading } = useAuth();
 
   // Add toast notification system
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
@@ -309,9 +385,14 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleLogoutConfirm = async () => {
-    await auth.signOut();
-    navigate('/login');
-    setShowLogoutDialog(false);
+    try {
+      await signOut(); // Use the signOut from useAuth context
+      setShowLogoutDialog(false);
+      // Force navigation to login and replace history
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Update delete handlers to show modern dialogs
@@ -373,11 +454,17 @@ const AdminDashboard: React.FC = () => {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       console.log('No user found, redirecting to login');
       navigate('/login', { replace: true });
+      return;
     }
-  }, [user, loading, navigate]);
+    // Check if user is admin
+    if (user && userProfile && userProfile.role !== 'Administrator') {
+      console.log('Non-admin access attempt, redirecting to home');
+      navigate('/', { replace: true });
+    }
+  }, [user, authLoading, userProfile, navigate]);
 
   // Fetch data effect
   useEffect(() => {
@@ -386,14 +473,22 @@ const AdminDashboard: React.FC = () => {
         setIsLoading(true);
         
         // Fetch from the correct tables based on your Supabase schema
-        const [usersData, eventsData, fieldsData, contactMessagesData] = await Promise.all([
+  const [usersData, eventsData, fieldOfInterestData, contactMessagesData, coursesData, courseTypesData, courseStatusesData, enrollmentsData] = await Promise.all([
           supabase.from('users').select(`
             *,
             account:accounts(email, created_at)
           `).order('created_at', { ascending: false }),
           supabase.from('events').select('*').order('created_at', { ascending: false }),
           supabase.from('field_of_interest_options').select('*'),
-          supabase.from('contact_messages').select('*').order('created_at', { ascending: false })
+          supabase.from('contact_messages').select('*').order('created_at', { ascending: false }),
+          supabase.from('courses').select(`
+            *,
+            field_of_interest_options(name)
+          `).order('created_at', { ascending: false }),
+          supabase.from('course_types').select('*').order('created_at', { ascending: true }),
+          supabase.from('course_statuses').select('*').order('created_at', { ascending: true }),
+          // fetch enrollments with user join (adjust fields to match your schema)
+          supabase.from('course_enrollments').select(`*, user:users(id, full_name, account:accounts(email))`).order('collected_at', { ascending: false })
         ]);
 
         // Handle users data
@@ -413,11 +508,11 @@ const AdminDashboard: React.FC = () => {
         }
 
         // Handle fields data
-        if (fieldsData.error) {
-          console.error('Fields fetch error:', fieldsData.error);
+        if (fieldOfInterestData.error) {
+          console.error('Fields fetch error:', fieldOfInterestData.error);
           setFields([]);
         } else {
-          setFields(fieldsData.data || []);
+          setFields(fieldOfInterestData.data || []);
         }
 
         // Handle contact messages data
@@ -427,12 +522,51 @@ const AdminDashboard: React.FC = () => {
         } else {
           setContactMessages(contactMessagesData.data || []);
         }
+
+        // Handle courses data
+        if (coursesData.error) {
+          console.error('Courses fetch error:', coursesData.error);
+          setCourses([]);
+        } else {
+          setCourses(coursesData.data || []);
+        }
+
+        // Handle enrollments data
+        if (enrollmentsData && enrollmentsData.error) {
+          console.error('Enrollments fetch error:', enrollmentsData.error);
+          setEnrollments([]);
+        } else {
+          setEnrollments(enrollmentsData?.data || []);
+        }
+        // course types
+        if (courseTypesData && courseTypesData.error) {
+          console.error('Course types fetch error:', courseTypesData.error);
+          setCourseTypes([]);
+        } else {
+          setCourseTypes(courseTypesData?.data || []);
+        }
+
+        // course statuses
+        if (courseStatusesData && courseStatusesData.error) {
+          console.error('Course statuses fetch error:', courseStatusesData.error);
+          setCourseStatuses([]);
+        } else {
+          setCourseStatuses(courseStatusesData?.data || []);
+        }
+
+        // field of interest options
+        if (fieldOfInterestData && fieldOfInterestData.error) {
+          console.error('Field of interest fetch error:', fieldOfInterestData.error);
+          setFieldOfInterestOptions([]);
+        } else {
+          setFieldOfInterestOptions(fieldOfInterestData?.data || []);
+        }
         
         // Calculate statistics
         const totalEvents = eventsData.data?.length || 0;
         const activeEvents = totalEvents; // All events are considered active since there's no status field
-        const totalFields = fieldsData.data?.length || 0;
-        const activeFields = fieldsData.data?.filter(f => f.is_active).length || 0;
+        const totalFields = fieldOfInterestData.data?.length || 0;
+        const activeFields = fieldOfInterestData.data?.filter(f => f.is_active).length || 0;
         
         // Calculate event statistics
         const upcomingEvents = eventsData.data?.filter(e => new Date(e.date) > new Date()).length || 0;
@@ -473,6 +607,63 @@ const AdminDashboard: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Load user enrollments when enrollments tab is active
+  useEffect(() => {
+    if (activeTab === 'enrollments') {
+      loadUserEnrollments();
+    }
+  }, [activeTab]);
+
+  // Function to load user enrollments
+  const loadUserEnrollments = async () => {
+    try {
+      setLoadingUserEnrollments(true);
+      const { data, error } = await supabase
+        .from('course_enrollments')
+        .select(`
+          *,
+          user:users(id, full_name, account:accounts(email)),
+          course:courses(id, title, course_type, status)
+        `)
+        .order('collected_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading user enrollments:', error);
+        setUserEnrollments([]);
+        return;
+      }
+
+      setUserEnrollments(data || []);
+    } catch (error) {
+      console.error('Error loading user enrollments:', error);
+      setUserEnrollments([]);
+    } finally {
+      setLoadingUserEnrollments(false);
+    }
+  };
+
+  // Function to remove enrollment
+  const handleRemoveEnrollment = async (enrollment: any) => {
+    try {
+      const { error } = await supabase
+        .from('course_enrollments')
+        .delete()
+        .eq('id', enrollment.id);
+
+      if (error) {
+        console.error('Error removing enrollment:', error);
+        return;
+      }
+
+      // Refresh the enrollments list
+      await loadUserEnrollments();
+      setShowRemoveEnrollmentDialog(false);
+      setEnrollmentToRemove(null);
+    } catch (error) {
+      console.error('Error removing enrollment:', error);
+    }
+  };
 
   // Fetch tickets in useEffect
   useEffect(() => {
@@ -550,6 +741,155 @@ const AdminDashboard: React.FC = () => {
     }
     setShowDeleteTicketDialog(false);
     setTicketToDelete(null);
+  };
+
+  // Course CRUD handlers
+  const handleAddCourse = () => {
+    const defaultStatus = courseStatuses.find(cs => cs.name === 'upcoming');
+    setEditingCourse(null);
+    setCourseForm({
+      title: '',
+      description: '',
+      course_type_id: null,
+      course_type: '',
+      status_id: defaultStatus ? defaultStatus.id : null,
+      status: defaultStatus ? defaultStatus.name : '',
+      start_date: '',
+      end_date: '',
+      link: '',
+      image_url: '',
+      field_of_interest_id: null
+    });
+    setImageFile(null);
+    setImagePreview('');
+    setIsCourseDialogOpen(true);
+  };
+
+  const handleEditCourse = (course: Course) => {
+    setEditingCourse(course);
+    setCourseForm({
+      title: course.title,
+      description: course.description || '',
+      course_type_id: course.course_type_id,
+      course_type: course.course_type,
+      status_id: course.status_id,
+      status: course.status,
+      start_date: course.start_date,
+      end_date: course.end_date || '',
+      link: course.link || '',
+      image_url: course.image_url || '',
+      field_of_interest_id: course.field_of_interest_id
+    });
+    setImagePreview(course.image_url || '');
+    setIsCourseDialogOpen(true);
+  };
+
+  const handleDeleteCourse = (course: Course) => {
+    setCourseToDelete(course);
+    setShowDeleteCourseDialog(true);
+  };
+
+  const handleDeleteCourseConfirm = async () => {
+    if (!courseToDelete) return;
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', courseToDelete.id);
+      
+      if (error) throw error;
+      
+      setCourses(courses.filter(c => c.id !== courseToDelete.id));
+      showToast('Course deleted successfully!', 'success');
+    } catch (err) {
+      console.error('Delete course error:', err);
+      showToast(err instanceof Error ? err.message : 'Failed to delete course', 'error');
+    } finally {
+      setShowDeleteCourseDialog(false);
+      setCourseToDelete(null);
+    }
+  };
+
+  const handleSaveCourse = async () => {
+    try {
+      setIsCreatingEvent(true); // Reuse the loading state
+      setEventProgress(0);
+      
+      let imageUrl = courseForm.image_url;
+      
+      // Validate form
+      if (!courseForm.title || !courseForm.start_date || !courseForm.course_type_id || !courseForm.status_id) {
+        throw new Error('Title, start date, course type, and status are required');
+      }
+      
+      setEventProgress(20);
+      
+      // Handle image upload if there's a new image
+      if (imageFile) {
+        setIsUploadingImage(true);
+        try {
+          imageUrl = await uploadImage(imageFile);
+        } catch (error) {
+          console.error('Image upload failed:', error);
+          showToast('Failed to upload image. Continuing without image.', 'warning');
+          imageUrl = '';
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+      
+      setEventProgress(50);
+      
+      const courseData = {
+        ...courseForm,
+        image_url: imageUrl
+      };
+      
+      if (editingCourse) {
+        const { error } = await supabase
+          .from('courses')
+          .update(courseData)
+          .eq('id', editingCourse.id);
+        
+        if (error) throw error;
+        
+        setCourses(courses.map(c => 
+          c.id === editingCourse.id ? { ...c, ...courseData } : c
+        ));
+        showToast('Course updated successfully!', 'success');
+      } else {
+        const { error } = await supabase
+          .from('courses')
+          .insert([courseData]);
+        
+        if (error) throw error;
+        
+        // Refresh courses list
+        const { data } = await supabase
+          .from('courses')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        setCourses(data || []);
+        showToast('Course created successfully!', 'success');
+      }
+      
+      setEventProgress(100);
+      
+      setTimeout(() => {
+        setIsCourseDialogOpen(false);
+        setImageFile(null);
+        setImagePreview('');
+        setEventProgress(0);
+        setIsCreatingEvent(false);
+      }, 1000);
+      
+    } catch (err) {
+      console.error('Save course error:', err);
+      showToast(err instanceof Error ? err.message : 'Failed to save course', 'error');
+      setIsCreatingEvent(false);
+      setEventProgress(0);
+    }
   };
 
   // Show loading while checking authentication
@@ -959,6 +1299,115 @@ const AdminDashboard: React.FC = () => {
     }
   ];
 
+  const courseColumns = [
+    { accessorKey: 'title', header: 'Title' },
+    { accessorKey: 'description', header: 'Description', cell: ({ row }: any) => (
+      <div className="max-w-xs truncate text-sm" title={row.original.description || ''}>{row.original.description || '—'}</div>
+    ) },
+    {
+      id: 'enrolled_count',
+      header: 'Enrolled',
+      cell: ({ row }: any) => {
+        const courseId = row.original.id;
+        const list = enrollments.filter((en: any) => en.course_id === courseId);
+        return (
+          <Button variant="ghost" size="sm" onClick={() => {
+            setSelectedCourseEnrollees(list);
+            setShowCourseEnrolleesDialog(true);
+          }}>
+            {list.length}
+          </Button>
+        );
+      }
+    },
+    { 
+      accessorKey: 'course_type', 
+      header: 'Type',
+      cell: ({ row }: any) => {
+        const courseType = courseTypes.find(ct => ct.id === row.original.course_type_id);
+        return (
+          <Badge variant={courseType?.variant as any || 'outline'}>
+            {courseType?.display_name || row.original.course_type}
+          </Badge>
+        );
+      }
+    },
+    { 
+      accessorKey: 'start_date', 
+      header: 'Start Date',
+      cell: ({ row }: any) => new Date(row.original.start_date).toLocaleDateString()
+    },
+    { 
+      accessorKey: 'end_date', 
+      header: 'End Date',
+      cell: ({ row }: any) => row.original.end_date ? new Date(row.original.end_date).toLocaleDateString() : 'N/A'
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }: any) => {
+        const courseStatus = courseStatuses.find(cs => cs.id === row.original.status_id);
+        return (
+          <Badge variant={courseStatus?.variant as any || 'outline'}>
+            {courseStatus?.display_name || row.original.status}
+          </Badge>
+        );
+      }
+    },
+    {
+      accessorKey: 'field_of_interest_id',
+      header: 'Field',
+      cell: ({ row }: any) => {
+        const field = fieldOfInterestOptions.find(f => f.id === row.original.field_of_interest_id);
+        return field ? (
+          <Badge variant="secondary">
+            {field.name}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-sm">—</span>
+        );
+      }
+    },
+    {
+      accessorKey: 'link',
+      header: 'Link',
+      cell: ({ row }: any) => row.original.link ? (
+        <Button variant="ghost" size="sm" asChild>
+          <a href={row.original.link} target="_blank" rel="noopener noreferrer">
+            <LinkIcon className="h-4 w-4" />
+          </a>
+        </Button>
+      ) : null
+    },
+    {
+      accessorKey: 'image_url',
+      header: 'Image',
+      cell: ({ row }: any) => (
+        row.original.image_url ? (
+          <img src={row.original.image_url} alt={row.original.title} className="w-12 h-12 object-cover rounded" />
+        ) : (
+          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </div>
+        )
+      )
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }: any) => (
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => handleEditCourse(row.original)}>
+            <Edit3 className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => handleDeleteCourse(row.original)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )
+    }
+  ];
+
   const eventColumns = [
     { accessorKey: 'title', header: 'Title' },
     { accessorKey: 'location', header: 'Location' },
@@ -1041,6 +1490,7 @@ const AdminDashboard: React.FC = () => {
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="lg:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
+
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1053,6 +1503,8 @@ const AdminDashboard: React.FC = () => {
                 { id: 'overview', icon: BarChart3, label: 'Overview' },
                 { id: 'users', icon: Users, label: 'Users' },
                 { id: 'events', icon: Calendar, label: 'Events' },
+                { id: 'courses', icon: BookOpen, label: 'Courses' },
+                { id: 'enrollments', icon: UserCheck, label: 'Enrollments' },
                 { id: 'fields', icon: Globe, label: 'Fields' },
                 { id: 'messages', icon: Mail, label: 'Messages' },
                 { id: 'tickets', icon: TicketIcon, label: 'Tickets' },
@@ -1135,7 +1587,7 @@ const AdminDashboard: React.FC = () => {
                 <ThemeToggle />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2 h-10 px-3">
+                    <Button variant="ghost" className="flex items-center gap-2 h-10 px-3 text-foreground hover:bg-accent/20 dark:text-muted-foreground dark:hover:text-foreground">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="text-sm">{userProfile?.full_name?.charAt(0) || 'A'}</AvatarFallback>
                       </Avatar>
@@ -1512,6 +1964,97 @@ const AdminDashboard: React.FC = () => {
                   </Card>
                 )}
 
+                {activeTab === 'courses' && (
+                  <div>
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex space-x-2">
+                          <Button variant={coursesTab === 'courses' ? 'default' : 'ghost'} size="sm" onClick={() => setCoursesTab('courses')}>Courses Management</Button>
+                          <Button variant={coursesTab === 'types' ? 'default' : 'ghost'} size="sm" onClick={() => setCoursesTab('types')}>Course Types</Button>
+                        </div>
+                        <div>
+                          {coursesTab === 'courses' ? (
+                            <Button onClick={handleAddCourse} size="sm">
+                              <Plus className="mr-2 h-4 w-4" /> Add Course
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {coursesTab === 'types' && (
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium">Course Types</h3>
+                            <Button onClick={() => { setEditingCourseType(null); setCourseTypeForm({ name: '', display_name: '', variant: 'outline', is_active: true }); setIsCourseTypeDialogOpen(true); }} size="sm">
+                              <Plus className="mr-2 h-4 w-4" /> Add Type
+                            </Button>
+                          </div>
+                          <Card className="p-4">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b">
+                                  <th className="text-left p-2">Name</th>
+                                  <th className="text-left p-2">Display Name</th>
+                                  <th className="text-left p-2">Variant</th>
+                                  <th className="text-left p-2">Active</th>
+                                  <th className="text-left p-2">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {courseTypes.map(ct => (
+                                  <tr key={ct.id} className="border-b">
+                                    <td className="p-2">
+                                      <Badge variant={ct.variant as any}>{ct.name}</Badge>
+                                    </td>
+                                    <td className="p-2">{ct.display_name}</td>
+                                    <td className="p-2">{ct.variant}</td>
+                                    <td className="p-2">
+                                      <Badge variant={ct.is_active ? 'default' : 'secondary'}>
+                                        {ct.is_active ? 'Active' : 'Inactive'}
+                                      </Badge>
+                                    </td>
+                                    <td className="p-2">
+                                      <div className="flex gap-2">
+                                        <Button size="sm" variant="outline" onClick={() => {
+                                          setEditingCourseType(ct);
+                                          setCourseTypeForm({ name: ct.name, display_name: ct.display_name, variant: ct.variant, is_active: ct.is_active });
+                                          setIsCourseTypeDialogOpen(true);
+                                        }}>Edit</Button>
+                                        <Button size="sm" variant="ghost" onClick={async () => {
+                                          await supabase.from('course_types').delete().eq('id', ct.id);
+                                          setCourseTypes(courseTypes.filter(t => t.id !== ct.id));
+                                        }}>Delete</Button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </Card>
+                        </div>
+                      )}
+                    </div>
+
+                    {coursesTab === 'courses' && (
+                      <Card className="p-4">
+                        {courses.length === 0 ? (
+                          <div className="p-6 text-center">
+                            <p className="mb-4 text-muted-foreground">No courses yet. Click "Add Course" to create one.</p>
+                            <Button onClick={handleAddCourse} variant="ghost">
+                              <Plus className="mr-2 h-4 w-4" /> Create your first course
+                            </Button>
+                          </div>
+                        ) : (
+                          <DataTable
+                            columns={courseColumns}
+                            data={courses}
+                            searchKey="title"
+                          />
+                        )}
+                      </Card>
+                    )}
+                  </div>
+                )}
                 {activeTab === 'tickets' && (
                   <Card className="p-4">
                     <DataTable
@@ -1567,15 +2110,160 @@ const AdminDashboard: React.FC = () => {
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
+
+                      {/* Course Enrollees Dialog */}
+                      <Dialog open={showCourseEnrolleesDialog} onOpenChange={setShowCourseEnrolleesDialog}>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Enrolled Users</DialogTitle>
+                            <DialogDescription>List of users who collected / enrolled in this course.</DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            {selectedCourseEnrollees.length === 0 ? (
+                              <p className="text-muted-foreground">No users have enrolled in this course yet.</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {selectedCourseEnrollees.map((en: any) => (
+                                  <div key={en.id} className="flex items-center justify-between p-2 border rounded">
+                                    <div>
+                                      <div className="font-medium">{en.user?.full_name || 'Unknown'}</div>
+                                      <div className="text-sm text-muted-foreground">{en.user?.account?.email || 'No email'}</div>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">{en.status}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowCourseEnrolleesDialog(false)}>Close</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                   </Card>
                 )}
-        </div>
-            )}
-      </div>
-      </div>
-      </div>
 
-      {/* User Dialog */}
+                {activeTab === 'enrollments' && (
+                  <Card className="p-4">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold">User Course Enrollments</h3>
+                      <p className="text-sm text-muted-foreground">Manage user enrollments and remove courses from users</p>
+                    </div>
+
+                    {loadingUserEnrollments ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        <span>Loading enrollments...</span>
+                      </div>
+                    ) : userEnrollments.length === 0 ? (
+                      <div className="text-center py-8">
+                        <UserCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">No user enrollments found</p>
+                      </div>
+                    ) : (
+                      <DataTable
+                        columns={[
+                          {
+                            id: 'user_name',
+                            header: 'User',
+                            accessorFn: (row: any) => row.user?.full_name || 'Unknown',
+                            cell: ({ row }: any) => (
+                              <div>
+                                <div className="font-medium">{row.original.user?.full_name || 'Unknown'}</div>
+                                <div className="text-sm text-muted-foreground">{row.original.user?.account?.email || 'No email'}</div>
+                              </div>
+                            )
+                          },
+                          {
+                            id: 'course_title',
+                            header: 'Course',
+                            accessorFn: (row: any) => row.course?.title || 'Unknown',
+                            cell: ({ row }: any) => (
+                              <div>
+                                <div className="font-medium">{row.original.course?.title || 'Unknown'}</div>
+                                <div className="text-sm text-muted-foreground">{row.original.course?.course_type || ''}</div>
+                              </div>
+                            )
+                          },
+                          {
+                            accessorKey: 'status',
+                            header: 'Status',
+                            cell: ({ row }: any) => (
+                              <Badge variant={row.original.status === 'enrolled' ? 'default' : 'secondary'}>
+                                {row.original.status}
+                              </Badge>
+                            )
+                          },
+                          {
+                            accessorKey: 'progress',
+                            header: 'Progress',
+                            cell: ({ row }: any) => `${row.original.progress}%`
+                          },
+                          {
+                            accessorKey: 'collected_at',
+                            header: 'Enrolled Date',
+                            cell: ({ row }: any) => new Date(row.original.collected_at).toLocaleDateString()
+                          },
+                          {
+                            id: 'actions',
+                            header: 'Actions',
+                            cell: ({ row }: any) => (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setEnrollmentToRemove(row.original);
+                                  setShowRemoveEnrollmentDialog(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )
+                          }
+                        ]}
+                        data={userEnrollments}
+                        searchKey="user.full_name"
+                      />
+                    )}
+
+                    {/* Remove Enrollment Confirmation Dialog */}
+                    <Dialog open={showRemoveEnrollmentDialog} onOpenChange={setShowRemoveEnrollmentDialog}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Remove Enrollment</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to remove this course enrollment? This action cannot be undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        {enrollmentToRemove && (
+                          <div className="py-4">
+                            <div className="bg-muted p-3 rounded-lg">
+                              <p><strong>User:</strong> {enrollmentToRemove.user?.full_name || 'Unknown'}</p>
+                              <p><strong>Course:</strong> {enrollmentToRemove.course?.title || 'Unknown'}</p>
+                              <p><strong>Enrolled:</strong> {new Date(enrollmentToRemove.collected_at).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        )}
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowRemoveEnrollmentDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => enrollmentToRemove && handleRemoveEnrollment(enrollmentToRemove)}
+                          >
+                            Remove Enrollment
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </Card>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>      {/* User Dialog */}
       <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1989,6 +2677,303 @@ const AdminDashboard: React.FC = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>Cancel</Button>
             <Button variant="destructive" onClick={handleLogoutConfirm}>Logout</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Course Dialog */}
+      <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingCourse ? 'Edit Course' : 'Add New Course'}</DialogTitle>
+            <DialogDescription>
+              {editingCourse ? 'Edit the course details below.' : 'Add a new course to the platform.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Progress Bar */}
+          {isCreatingEvent && (
+            <div className="mb-6">
+              <Progress value={eventProgress} className="w-full" />
+              <p className="text-sm text-muted-foreground mt-2">
+                {isUploadingImage ? 'Uploading image...' : 'Saving course...'}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={courseForm.title}
+                  onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
+                  disabled={isCreatingEvent}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="start_date">Start Date</Label>
+                <Input
+                  id="start_date"
+                  type="date"
+                  value={courseForm.start_date}
+                  onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value })}
+                  disabled={isCreatingEvent}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="end_date">End Date</Label>
+                <Input
+                  id="end_date"
+                  type="date"
+                  value={courseForm.end_date}
+                  onChange={(e) => setCourseForm({ ...courseForm, end_date: e.target.value })}
+                  disabled={isCreatingEvent}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="course_type">Course Type</Label>
+                <Select
+                  value={courseForm.course_type_id?.toString() || ''}
+                  onValueChange={(value: string) => {
+                    const selectedType = courseTypes.find(ct => ct.id.toString() === value);
+                    if (selectedType) {
+                      setCourseForm({ 
+                        ...courseForm, 
+                        course_type_id: selectedType.id,
+                        course_type: selectedType.name
+                      });
+                    }
+                  }}
+                  disabled={isCreatingEvent}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courseTypes.filter(ct => ct.is_active).map(ct => (
+                      <SelectItem key={ct.id} value={ct.id.toString()}>{ct.display_name || ct.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={courseForm.description}
+                  onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
+                  disabled={isCreatingEvent}
+                  placeholder="Enter course description..."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={courseForm.status_id?.toString() || ''}
+                  onValueChange={(value) => {
+                    const selectedStatus = courseStatuses.find(cs => cs.id.toString() === value);
+                    setCourseForm({
+                      ...courseForm,
+                      status_id: selectedStatus ? selectedStatus.id : null,
+                      status: selectedStatus ? selectedStatus.name : ''
+                    });
+                  }}
+                  disabled={isCreatingEvent}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courseStatuses.filter(cs => cs.is_active).map(cs => (
+                      <SelectItem key={cs.id} value={cs.id.toString()}>
+                        {cs.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="field_of_interest">Field of Interest</Label>
+                <Select
+                  value={courseForm.field_of_interest_id?.toString() || ''}
+                  onValueChange={(value) => {
+                    setCourseForm({
+                      ...courseForm,
+                      field_of_interest_id: value ? parseInt(value) : null
+                    });
+                  }}
+                  disabled={isCreatingEvent}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select field (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fieldOfInterestOptions.filter(f => f.is_active).map(field => (
+                      <SelectItem key={field.id} value={field.id.toString()}>
+                        {field.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="link">Course Link</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={courseForm.link || ''}
+                  onChange={(e) => setCourseForm({ ...courseForm, link: e.target.value })}
+                  disabled={isCreatingEvent}
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="image">Course Image</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={isCreatingEvent}
+                  />
+                  {imagePreview && (
+                    <div className="relative w-24 h-24">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCourseDialogOpen(false)} disabled={isCreatingEvent}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveCourse} disabled={isCreatingEvent}>
+              {isCreatingEvent ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>{editingCourse ? 'Update Course' : 'Create Course'}</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Course Dialog */}
+      <Dialog open={showDeleteCourseDialog} onOpenChange={setShowDeleteCourseDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this course? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteCourseDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteCourseConfirm}>
+              Delete Course
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Course Type Dialog */}
+      <Dialog open={isCourseTypeDialogOpen} onOpenChange={setIsCourseTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCourseType ? 'Edit Course Type' : 'Add Course Type'}</DialogTitle>
+            <DialogDescription>Manage course type details.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="course-type-name">Name</Label>
+              <Input id="course-type-name" value={courseTypeForm.name} onChange={(e) => setCourseTypeForm({ ...courseTypeForm, name: e.target.value })} />
+            </div>
+            <div>
+              <Label htmlFor="course-type-display-name">Display Name</Label>
+              <Input id="course-type-display-name" value={courseTypeForm.display_name} onChange={(e) => setCourseTypeForm({ ...courseTypeForm, display_name: e.target.value })} />
+            </div>
+            <div>
+              <Label htmlFor="course-type-variant">Variant</Label>
+              <Select value={courseTypeForm.variant} onValueChange={(v) => setCourseTypeForm({ ...courseTypeForm, variant: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="outline">Outline</SelectItem>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="secondary">Secondary</SelectItem>
+                  <SelectItem value="destructive">Destructive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="course-type-active"
+                checked={courseTypeForm.is_active}
+                onChange={(e) => setCourseTypeForm({ ...courseTypeForm, is_active: e.target.checked })}
+              />
+              <Label htmlFor="course-type-active">Active</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsCourseTypeDialogOpen(false); setEditingCourseType(null); }}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                if (!courseTypeForm.name.trim()) return;
+                if (editingCourseType) {
+                  const { error } = await supabase.from('course_types').update({
+                    name: courseTypeForm.name,
+                    display_name: courseTypeForm.display_name,
+                    variant: courseTypeForm.variant,
+                    is_active: courseTypeForm.is_active
+                  }).eq('id', editingCourseType.id);
+                  if (error) throw error;
+                  setCourseTypes(courseTypes.map(ct => ct.id === editingCourseType.id ? { ...ct, ...courseTypeForm } : ct));
+                  showToast('Course type updated', 'success');
+                } else {
+                  const { data, error } = await supabase.from('course_types').insert({
+                    name: courseTypeForm.name,
+                    display_name: courseTypeForm.display_name,
+                    variant: courseTypeForm.variant,
+                    is_active: courseTypeForm.is_active
+                  }).select().single();
+                  if (error) throw error;
+                  setCourseTypes([...courseTypes, data]);
+                  showToast('Course type added', 'success');
+                }
+                setIsCourseTypeDialogOpen(false);
+                setEditingCourseType(null);
+              } catch (err) {
+                console.error('Save course type error:', err);
+                showToast(err instanceof Error ? err.message : 'Failed to save course type', 'error');
+              }
+            }}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

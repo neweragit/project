@@ -584,29 +584,16 @@ export const authHelpers = {
       // Get field of interest options
       async getFieldOfInterestOptions(): Promise<string[]> {
         try {
-          console.log('🔍 Fetching field_of_interest_options from database...');
-          
-          // Query the field_of_interest_options table
           const { data, error } = await supabase
             .from('field_of_interest_options')
             .select('name')
             .eq('is_active', true)
             .order('display_order', { ascending: true });
           
-          console.log('📊 Supabase response:', { data, error });
-          
-          if (error) {
-            console.error('❌ Supabase error:', error);
-            throw error;
-          }
-          
-          const fieldNames = data?.map(item => item.name) || [];
-          console.log('✅ Extracted field names:', fieldNames);
-          
-          return fieldNames;
+          if (error) throw error;
+          return data?.map(item => item.name) || [];
         } catch (error) {
-          console.error('💥 Error fetching field_of_interest options:', error);
-          // Return empty array instead of hardcoded values
+          console.error('Error fetching field options:', error);
           return [];
         }
       },

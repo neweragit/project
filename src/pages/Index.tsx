@@ -23,7 +23,26 @@ const Index = () => {
       try {
         const { data, error } = await auth.getEvents();
         if (!error && data) {
-          setFeaturedEvents(data);
+          // Sort events by date - nearest upcoming events first
+          const sortedEvents = data.sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            const now = new Date();
+            
+            // If both events are in the future, sort by nearest first
+            if (dateA >= now && dateB >= now) {
+              return dateA.getTime() - dateB.getTime();
+            }
+            
+            // If one is in the past and one is in the future, future events come first
+            if (dateA >= now && dateB < now) return -1;
+            if (dateA < now && dateB >= now) return 1;
+            
+            // If both are in the past, sort by most recent first
+            return dateB.getTime() - dateA.getTime();
+          });
+          
+          setFeaturedEvents(sortedEvents);
         }
       } catch (error) {
         console.error('Error loading events:', error);

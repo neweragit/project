@@ -59,26 +59,26 @@
   }
 
   .dark {
-    /* Dark mode - Enhanced cosmic theme */
-    --background: 220 15% 8%;
-    --foreground: 220 15% 95%;
+    /* Dark mode - Enhanced cosmic theme with better visibility */
+    --background: 220 20% 10%;
+    --foreground: 220 15% 98%;
 
-    --card: 220 15% 12%;
-    --card-foreground: 220 15% 95%;
+    --card: 220 20% 13%;
+    --card-foreground: 220 15% 98%;
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 220 20% 13%;
+    --popover-foreground: 220 15% 98%;
 
-    --primary: 240 100% 65%;
+    --primary: 240 100% 70%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 15%;
-    --secondary-foreground: 220 15% 95%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 220 15% 98%;
 
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 13% 70%;
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 15% 80%;
 
-    --accent: 280 100% 75%;
+    --accent: 280 100% 80%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 70%;

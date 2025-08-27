@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -62,6 +62,7 @@ export default function Login() {
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [developmentOtp, setDevelopmentOtp] = useState(''); // For development only
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loginForm, setLoginForm] = useState<LoginFormData>({
     email: '',
@@ -82,53 +83,25 @@ export default function Login() {
     const fetchOptions = async () => {
       try {
         setIsLoadingOptions(true);
-        console.log('🔄 Login: Starting to fetch field options...');
         
         const [fields, roles] = await Promise.all([
           auth.getFieldOfInterestOptions(),
           auth.getUserRoleOptions()
         ]);
         
-        console.log('📋 Login: Fetched field options:', fields);
-        console.log('👥 Login: Fetched role options:', roles);
-        console.log('📊 Login: Field options count:', fields.length);
-        
         setFieldOptions(fields);
-        // Remove duplicates from roles
-        const uniqueRoles = [...new Set(roles)];
-        setRoleOptions(uniqueRoles);
+        setRoleOptions([...new Set(roles)]);
         
-        console.log('✅ Login: Options loaded successfully');
       } catch (error) {
-        console.error('❌ Login: Error fetching options:', error);
-        console.error('❌ Login: Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
-        // Only use dynamic data from database - no fallback options
+        console.error('Error loading options:', error);
         setFieldOptions([]);
         setRoleOptions(['Member']);
       } finally {
         setIsLoadingOptions(false);
-        console.log('🏁 Login: Options loading finished');
       }
     };
 
-    // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      if (isLoadingOptions) {
-        console.log('⏰ Login: Options loading timed out after 5 seconds');
-        setIsLoadingOptions(false);
-        setFieldOptions([]);
-        setRoleOptions(['Member']);
-      }
-    }, 5000); // 5 second timeout
-
     fetchOptions();
-
-    return () => clearTimeout(timeoutId);
   }, []);
 
   // Redirect if already logged in

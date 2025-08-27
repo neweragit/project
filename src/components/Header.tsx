@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, UserCircle, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, UserCircle, Shield, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +25,7 @@ export function Header() {
   const navItems = [
     { name: 'Who We Are', href: '/about' },
     { name: 'Events', href: '/events' },
-    { name: 'Scientific Research', href: '/research' },
+    { name: 'Courses', href: '/courses' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -77,6 +77,14 @@ export function Header() {
                       Admin
                     </Button>
                 )}
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/dashboard')}
+                  className="border-primary/50 hover:border-primary"
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => navigate('/profile')}
@@ -158,6 +166,17 @@ export function Header() {
                       Admin
                     </Button>
                   )}
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      navigate('/dashboard');
+                      setIsMenuOpen(false);
+                    }}
+                    className="border-primary/50 hover:border-primary w-full justify-start"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => {

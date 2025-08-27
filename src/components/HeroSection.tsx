@@ -42,12 +42,15 @@ export function HeroSection() {
             <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
           </Button>
           
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="lg"
             className="text-lg px-8 py-4 h-auto bg-background/20 backdrop-blur-sm border-primary/30 hover:bg-primary/10"
+            asChild
           >
-            Explore Research
+            <a href="/courses">
+              Explore Courses
+            </a>
           </Button>
         </div>
 
