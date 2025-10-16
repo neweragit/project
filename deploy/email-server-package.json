@@ -1,0 +1,17 @@
+{
+  "name": "new-era-email-server",
+  "version": "1.0.0",
+  "description": "Simple email server for New Era password reset",
+  "main": "email-server.js",
+  "scripts": {
+    "start": "node email-server.js",
+    "dev": "node email-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "keywords": ["email", "resend", "password-reset"],
+  "author": "New Era",
+  "license": "MIT"
+}

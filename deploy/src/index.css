@@ -1,0 +1,275 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Galaxy/Space-themed Design System */
+
+@layer base {
+  :root {
+    /* Light mode - Enhanced cosmic theme */
+    --background: 230 25% 97%;
+    --foreground: 220 15% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 20%;
+
+    --primary: 240 100% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 30% 95%;
+    --secondary-foreground: 220 15% 20%;
+
+    --muted: 240 20% 94%;
+    --muted-foreground: 220 13% 50%;
+
+    --accent: 280 100% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 15% 88%;
+    --input: 240 15% 90%;
+    --ring: 240 100% 55%;
+
+    --radius: 0.75rem;
+
+    /* Enhanced light mode gradients */
+    --gradient-cosmic: linear-gradient(135deg, hsl(240 100% 55%), hsl(280 100% 65%));
+    --gradient-nebula: linear-gradient(45deg, hsl(240 100% 55%), hsl(300 100% 65%), hsl(180 100% 65%));
+    --gradient-starfield: linear-gradient(180deg, hsl(230 25% 97%), hsl(240 35% 92%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 100% 55%) 0%, hsl(280 100% 65%) 50%, hsl(300 100% 75%) 100%);
+
+    /* Enhanced shadows and glows */
+    --glow-primary: 0 0 25px hsl(240 100% 55% / 0.4);
+    --glow-accent: 0 0 25px hsl(280 100% 65% / 0.4);
+    --shadow-cosmic: 0 10px 40px hsl(240 100% 55% / 0.15);
+    --shadow-card: 0 6px 20px hsl(220 13% 70% / 0.3);
+
+    /* Animations */
+    --animation-float: float 6s ease-in-out infinite;
+    --animation-rocket: rocket-fly 4s ease-in-out infinite;
+    --animation-pulse-glow: pulse-glow 2s ease-in-out infinite alternate;
+    --animation-rotate-slow: rotate-slow 20s linear infinite;
+  }
+
+  .dark {
+    /* Dark mode - Enhanced cosmic theme with better visibility */
+    --background: 220 20% 10%;
+    --foreground: 220 15% 98%;
+
+    --card: 220 20% 13%;
+    --card-foreground: 220 15% 98%;
+
+    --popover: 220 20% 13%;
+    --popover-foreground: 220 15% 98%;
+
+    --primary: 240 100% 70%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 220 15% 98%;
+
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 15% 80%;
+
+    --accent: 280 100% 80%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 240 100% 65%;
+
+    /* Enhanced dark mode gradients */
+    --gradient-cosmic: linear-gradient(135deg, hsl(240 100% 65%), hsl(280 100% 75%));
+    --gradient-nebula: linear-gradient(45deg, hsl(240 100% 65%), hsl(300 100% 75%), hsl(180 100% 75%));
+    --gradient-starfield: linear-gradient(180deg, hsl(220 15% 8%), hsl(220 15% 12%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 100% 65%) 0%, hsl(280 100% 75%) 50%, hsl(300 100% 85%) 100%);
+
+    /* Enhanced shadows and glows for dark mode */
+    --glow-primary: 0 0 30px hsl(240 100% 65% / 0.5);
+    --glow-accent: 0 0 30px hsl(280 100% 75% / 0.5);
+    --shadow-cosmic: 0 10px 40px hsl(240 100% 65% / 0.2);
+    --shadow-card: 0 6px 20px hsl(220 15% 20% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Galaxy button variants */
+  .btn-cosmic {
+    @apply relative overflow-hidden bg-primary text-primary-foreground px-6 py-3 rounded-lg;
+    background: var(--gradient-cosmic);
+    box-shadow: var(--glow-primary);
+    transition: all 0.3s ease;
+  }
+
+  .btn-cosmic:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-primary), var(--shadow-cosmic);
+  }
+
+  .btn-cosmic::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+    transform: translateX(-100%);
+  }
+
+  .btn-cosmic:hover::before {
+    @apply opacity-100;
+    transform: translateX(100%);
+  }
+
+  /* Cosmic card */
+  .card-cosmic {
+    @apply bg-card/80 backdrop-blur-md border border-border/50 rounded-xl p-6;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
+  }
+
+  .card-cosmic:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-cosmic), var(--glow-accent);
+  }
+
+  /* Starfield animation background */
+  .starfield {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .starfield::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.4), transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.7), transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: var(--animation-rotate-slow);
+    opacity: 0.6;
+  }
+
+  /* Text glow effect */
+  .text-glow {
+    text-shadow: 0 0 20px currentColor;
+  }
+
+  /* Loading spinner */
+  .cosmic-spinner {
+    @apply w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@layer utilities {
+  /* Enhanced animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes rocket-fly {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(5deg); }
+    50% { transform: translateY(-5px) rotate(-3deg); }
+    75% { transform: translateY(-15px) rotate(8deg); }
+  }
+
+  @keyframes count-up {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes slide-in-up {
+    0% { transform: translateY(30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fade-in {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-glow {
+    0% { box-shadow: var(--glow-primary); }
+    100% { box-shadow: var(--glow-accent); }
+  }
+
+  @keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  /* Animation classes */
+  .animate-float {
+    animation: var(--animation-float);
+  }
+
+  .animate-rocket {
+    animation: var(--animation-rocket);
+  }
+
+  .animate-count-up {
+    animation: count-up 0.8s ease-out;
+  }
+
+  .animate-slide-in-up {
+    animation: slide-in-up 0.6s ease-out;
+  }
+
+  .animate-fade-in-delayed {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  .animate-pulse-glow {
+    animation: var(--animation-pulse-glow);
+  }
+
+  .animate-rotate-slow {
+    animation: var(--animation-rotate-slow);
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    background-size: 1000px 100%;
+  }
+}
