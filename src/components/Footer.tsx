@@ -69,19 +69,21 @@ export function Footer() {
                 <div className="w-8 h-8 bg-gradient-cosmic rounded-full flex items-center justify-center">
                   <Mail className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">info@rvlti.org</span>
+                <span className="text-muted-foreground text-sm">ali2003fac@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-nebula rounded-full flex items-center justify-center">
                   <Phone className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">+41 22 767 84 84</span>
+                <span className="text-muted-foreground text-sm">+213669028650</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-cosmic rounded-full flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">CERN Campus, Geneva</span>
+                <span className="text-muted-foreground text-sm">
+                  Kasdi Merbah University, Central Campus, Faculty of Medicine, Ouargla, Algeria
+                </span>
               </div>
             </div>
           </div>
@@ -89,10 +91,7 @@ export function Footer() {
           {/* Back to Top */}
           <div className="space-y-4">
             <h3 className="text-lg font-orbitron font-semibold">Navigate</h3>
-            <Button
-              onClick={scrollToTop}
-              className="btn-cosmic w-fit"
-            >
+            <Button onClick={scrollToTop} className="btn-cosmic w-fit">
               <ArrowUp className="w-4 h-4 mr-2" />
               Back to Top
             </Button>
@@ -102,7 +101,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-border/50 text-center">
           <p className="text-muted-foreground">
-            © 2024 RVLTI - NEW ERA. All rights reserved.
+            © 2025 RVLTI - NEW ERA. All rights reserved.
           </p>
         </div>
       </div>
