@@ -108,7 +108,7 @@ const Index = () => {
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-nebula rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Atom className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-orbitron font-bold mb-4">Scientific research/h3>
+<h3 className="text-xl font-orbitron font-bold mb-4">Scientific Research</h3>
               <p className="text-muted-foreground">
                Training students in scientific research and how to write it.
               </p>
