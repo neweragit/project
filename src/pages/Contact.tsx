@@ -202,79 +202,81 @@ const Contact = () => {
               </form>
             </div>
 
-            {/* Contact Information */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-3xl font-orbitron font-bold">Get in Touch</h2>
-                <p className="text-muted-foreground">
-                  Connect with our research teams and stay updated on the latest discoveries.
-                </p>
-              </div>
+        {/* Contact Information */}
+<div className="space-y-8">
+  <div className="space-y-4">
+    <h2 className="text-3xl font-orbitron font-bold">Get in Touch</h2>
+    <p className="text-muted-foreground">
+      Connect with our team and stay updated on the latest research and innovations.
+    </p>
+  </div>
 
-              <div className="space-y-6">
-                <div className="card-cosmic">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-cosmic rounded-full flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-orbitron font-semibold">Email</h3>
-                      <p className="text-muted-foreground">contact@newera-rvlti.org</p>
-                      <p className="text-muted-foreground">research@newera-rvlti.org</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card-cosmic">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-nebula rounded-full flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-orbitron font-semibold">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                      <p className="text-muted-foreground">+44 20 7946 0958</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card-cosmic">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-cosmic rounded-full flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-orbitron font-semibold">Headquarters</h3>
-                      <p className="text-muted-foreground">
-                        CERN Campus<br />
-                        Route de Meyrin 385<br />
-                        1217 Meyrin, Switzerland
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Map Placeholder */}
-              <div className="card-cosmic p-0 overflow-hidden">
-                <div className="h-64 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <div className="text-center space-y-2">
-                    <MapPin className="w-12 h-12 mx-auto text-primary" />
-                    <p className="text-muted-foreground">Interactive Map</p>
-                    <p className="text-sm text-muted-foreground">
-                      Find us at the CERN Campus
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+  <div className="space-y-6">
+    {/* Email */}
+    <div className="card-cosmic">
+      <div className="flex items-start space-x-4">
+        <div className="w-12 h-12 bg-gradient-cosmic rounded-full flex items-center justify-center flex-shrink-0">
+          <Mail className="w-6 h-6 text-white" />
         </div>
-      </section>
-
-      <Footer />
+        <div className="space-y-1">
+          <h3 className="font-orbitron font-semibold">Email</h3>
+          <p className="text-muted-foreground">ali2003fac@gmail.com</p>
+        </div>
+      </div>
     </div>
-  );
+
+    {/* Phone */}
+    <div className="card-cosmic">
+      <div className="flex items-start space-x-4">
+        <div className="w-12 h-12 bg-gradient-nebula rounded-full flex items-center justify-center flex-shrink-0">
+          <Phone className="w-6 h-6 text-white" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-orbitron font-semibold">Phone</h3>
+          <p className="text-muted-foreground">+213669028650</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Address */}
+    <div className="card-cosmic">
+      <div className="flex items-start space-x-4">
+        <div className="w-12 h-12 bg-gradient-cosmic rounded-full flex items-center justify-center flex-shrink-0">
+          <MapPin className="w-6 h-6 text-white" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-orbitron font-semibold">Address</h3>
+          <p className="text-muted-foreground">
+            Kasdi Merbah University<br />
+            Central Campus, Faculty of Medicine<br />
+            Ouargla, Algeria
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Embedded Google Map */}
+  <div className="card-cosmic p-0 overflow-hidden">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3385.71162066757!2d5.3068989!3d31.9415859!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x125d6ba955555555%3A0x9c44ac4757788bcd!2sUniversity%20of%20Ouargla!5e0!3m2!1sen!2sdz!4v1761597532910!5m2!1sen!2sdz"
+      width="100%"
+      height="300"
+      style={{ border: 0 }}
+      allowFullScreen=""
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      title="Kasdi Merbah University Map"
+    ></iframe>
+  </div>
+</div>
+</div>
+</div>
+</section>
+
+<Footer />
+</div>
+);
 };
 
 export default Contact;
