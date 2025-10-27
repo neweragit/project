@@ -165,12 +165,16 @@ const Index = () => {
             </div>
           )}
 
-          <div className="text-center">
-            <Button className="btn-cosmic text-lg px-8 py-4 h-auto">
-              View All Events
-              <ArrowRight className="w-5 h-5 ml-3" />
-            </Button>
-          </div>
+         <div className="text-center">
+  <Button
+    className="btn-cosmic text-lg px-8 py-4 h-auto"
+    onClick={() => navigate('/events')}
+  >
+    View All Events
+    <ArrowRight className="w-5 h-5 ml-3" />
+  </Button>
+</div>
+
         </div>
       </section>
       </main>
