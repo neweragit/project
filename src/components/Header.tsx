@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut, UserCircle, Shield, LayoutDashboard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo.png';
+import { Button } from '@/components/ui/button'; // ensure Button is imported
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,9 +54,9 @@ export function Header() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors ${
+                className={`text-sm font-medium transition-all duration-300 ${
                   item.name === 'T2T'
-                    ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold'
+                    ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold hover:from-[#5ce1e6] hover:to-[#6772ff]'
                     : isActive(item.href)
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-primary'
@@ -142,9 +142,9 @@ export function Header() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`text-sm font-medium transition-colors ${
+                  className={`text-sm font-medium transition-all duration-300 ${
                     item.name === 'T2T'
-                      ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold'
+                      ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold hover:from-[#5ce1e6] hover:to-[#6772ff]'
                       : isActive(item.href)
                       ? 'text-primary'
                       : 'text-muted-foreground hover:text-primary'
