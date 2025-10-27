@@ -52,21 +52,32 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm font-medium transition-all duration-300 ${
-                  item.name === 'T2T'
-                    ? 'px-4 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-[#5ce1e6] to-[#6772ff] shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300'
-                    : isActive(item.href)
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-primary'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+ {navItems.map((item) =>
+  item.name === 'T2T' ? (
+    <a
+      key={item.name}
+      href={item.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-4 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-[#5ce1e6] to-[#6772ff] shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-sm"
+    >
+      {item.name}
+    </a>
+  ) : (
+    <Link
+      key={item.name}
+      to={item.href}
+      className={`text-sm font-medium transition-all duration-300 ${
+        isActive(item.href)
+          ? 'text-primary'
+          : 'text-muted-foreground hover:text-primary'
+      }`}
+    >
+      {item.name}
+    </Link>
+  )
+)}
+
           </nav>
 
           {/* Desktop Actions */}
