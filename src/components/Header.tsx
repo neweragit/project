@@ -27,6 +27,7 @@ export function Header() {
     { name: 'Events', href: '/events' },
     { name: 'Courses', href: '/courses' },
     { name: 'Contact', href: '/contact' },
+    { name: 'T2T', href: 'https://time2thrive.vercel.app/' },
   ];
 
   const isActive = (href: string) => location.pathname === href;
@@ -53,8 +54,12 @@ export function Header() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
+                className={`text-sm font-medium transition-colors ${
+                  item.name === 'T2T'
+                    ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold'
+                    : isActive(item.href)
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-primary'
                 }`}
               >
                 {item.name}
@@ -73,9 +78,9 @@ export function Header() {
                     onClick={() => navigate('/admin')}
                     className="border-primary/50 hover:border-primary"
                   >
-                      <Shield className="w-4 h-4 mr-2" />
-                      Admin
-                    </Button>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
                 )}
                 <Button 
                   variant="outline" 
@@ -119,8 +124,8 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
             {isMenuOpen ? (
               <X className="w-6 h-6" />
             ) : (
@@ -137,8 +142,12 @@ export function Header() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
+                  className={`text-sm font-medium transition-colors ${
+                    item.name === 'T2T'
+                      ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold'
+                      : isActive(item.href)
+                      ? 'text-primary'
+                      : 'text-muted-foreground hover:text-primary'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -151,9 +160,9 @@ export function Header() {
               <div className="flex items-center justify-between mb-4">
                 <ThemeToggle />
               </div>
-                {user ? (
+              {user ? (
                 <div className="flex flex-col space-y-3">
-                    {userProfile?.role === 'Administrator' && (
+                  {userProfile?.role === 'Administrator' && (
                     <Button 
                       variant="outline" 
                       onClick={() => {
@@ -195,12 +204,12 @@ export function Header() {
                       setIsMenuOpen(false);
                     }}
                     className="text-destructive hover:text-destructive w-full justify-start"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
                 </div>
-                ) : (
+              ) : (
                 <Button 
                   variant="outline" 
                   onClick={() => {
@@ -210,10 +219,10 @@ export function Header() {
                   className="border-primary/50 hover:border-primary w-full justify-start"
                 >
                   <UserCircle className="w-4 h-4 mr-2" />
-                      Login
-                    </Button>
-                )}
-              </div>
+                  Login
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>
