@@ -11,17 +11,17 @@ export default function About() {
     {
       icon: Rocket,
       title: 'Innovation',
-      description: 'Pushing the boundaries of what\'s possible through cutting-edge research and technology.'
+      description: 'Pushing the boundaries of what\'s possible through cutting-edge .'
     },
     {
       icon: Users,
       title: 'Collaboration',
-      description: 'Bringing together brilliant minds from around the world to solve humanity\'s greatest challenges.'
+      description: 'Collaborating with all clubs and various specializations.\'s greatest challenges.'
     },
     {
       icon: Telescope,
       title: 'Exploration',
-      description: 'Venturing into the unknown to discover new frontiers in space and science.'
+      description: 'Venturing into the unknown to discover new frontiers in space of science.'
     },
     {
       icon: Atom,
@@ -33,52 +33,53 @@ export default function About() {
   const missions = [
     {
       icon: Globe,
-      title: 'Planetary Research',
-      description: 'Studying Earth and other planets to understand climate, geology, and potential for life.',
-      progress: 85
+      title: 'Volunteer work',
+      description: '',
+      progress: 0
     },
     {
       icon: Zap,
-      title: 'Energy Innovation',
-      description: 'Developing sustainable energy solutions for space exploration and Earth applications.',
-      progress: 72
+      title: 'Events,
+      description: '',
+      progress: 80
     },
     {
       icon: Brain,
       title: 'AI & Robotics',
-      description: 'Creating intelligent systems to assist in space exploration and scientific research.',
-      progress: 91
+      description: '',
+      progress: 10
     },
     {
       icon: Star,
-      title: 'Deep Space',
-      description: 'Exploring the cosmos to understand our universe and search for extraterrestrial life.',
-      progress: 68
+      title: 'Scientific research',
+      description: '',
+      progress: 20
     }
   ];
 
-  const team = [
-    {
-      name: 'Dr. Elena Vasquez',
-      role: 'Director of Space Sciences',
-      image: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Prof. Marcus Chen',
-      role: 'Lead AI Researcher',
-      image: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Dr. Sarah Johnson',
-      role: 'Planetary Geologist',
-      image: '/api/placeholder/150/150'
-    },
-    {
-      name: 'Dr. Ahmed Hassan',
-      role: 'Quantum Computing Specialist',
-      image: '/api/placeholder/150/150'
-    }
-  ];
+const team = [
+  {
+    name: 'Segueni Ali',
+    role: 'Club President',
+    image: '/api/placeholder/150/150'
+  },
+  {
+    name: 'Kemassi Abdelkrim',
+    role: 'Club Vice President',
+    image: '/api/placeholder/150/150'
+  },
+  {
+    name: 'Kemassi Mariam',
+    role: 'Medicine Branch Lead',
+    image: '/api/placeholder/150/150'
+  },
+  {
+    name: 'Sebabkhi Faress Eddine',
+    role: 'Development Team Lead',
+    image: '/api/placeholder/150/150'
+  }
+];
+
 
   return (
     <div className="min-h-screen bg-gradient-starfield starfield">
@@ -93,9 +94,8 @@ export default function About() {
                 Who We Are
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed">
-                NEW ERA is a pioneering organization dedicated to advancing human knowledge and 
-                exploration through innovative scientific research, space exploration, and 
-                technological breakthroughs that will shape the future of humanity.
+
+NEW ERA is the premier sandbox for student ideas and their dedicated space to unleash creativity. We are a hub designed to empower members, providing the environment to transform bold concepts into pioneering innovations that will shape the future
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/events">
@@ -118,16 +118,7 @@ export default function About() {
         <section className="py-20 relative">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-orbitron font-bold text-glow mb-6">
-                  Our Mission
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                  To accelerate human progress through groundbreaking research, space exploration, 
-                  and the development of technologies that will secure humanity's future among the stars.
-                </p>
-              </div>
-
+            
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {values.map((value, index) => (
                   <div
