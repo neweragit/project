@@ -23,7 +23,7 @@ export function Footer() {
             <p className="text-muted-foreground max-w-md">
               Leading humanity into the new era of scientific discovery and cosmic exploration.
             </p>
-            
+
             {/* Social Media Icons */}
             <div className="flex space-x-3">
               {[Facebook, Twitter, Instagram, Linkedin, Youtube].map((Icon, i) => (
@@ -69,7 +69,7 @@ export function Footer() {
                 <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">
+                <span className="text-muted-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis">
                   Kasdi Merbah University, Central Campus, Faculty of Medicine, Ouargla, Algeria
                 </span>
               </div>
