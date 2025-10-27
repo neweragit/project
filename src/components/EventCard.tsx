@@ -62,7 +62,7 @@ function CountdownTimer({ targetDate }: { targetDate: string }) {
   if (!isFutureEvent) {
     return (
       <div className="py-4 border-t border-border/50">
-        <p className="text-sm text-muted-foreground text-center">Event has passed</p>
+<p className="text-sm font-bold text-red-500 text-center">Event has passed</p>
       </div>
     );
   }
