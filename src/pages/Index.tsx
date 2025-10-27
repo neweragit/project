@@ -89,8 +89,7 @@ const Index = () => {
                 Leading the Future
               </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              We're pioneering the next generation of scientific discovery, 
-              space exploration, and technological advancement.
+             We are a hub designed to empower members, providing the environment to transform bold concepts into pioneering innovations that will shape the future
             </p>
           </div>
 
@@ -99,9 +98,9 @@ const Index = () => {
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-cosmic rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Rocket className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-orbitron font-bold mb-4">Space Exploration</h3>
+              <h3 className="text-xl font-orbitron font-bold mb-4">Workshops</h3>
               <p className="text-muted-foreground">
-                Pushing the boundaries of human presence in space through cutting-edge research and technology.
+              Organizing workshops for early detection, prevention, and correcting misconceptions
               </p>
             </div>
 
@@ -109,9 +108,9 @@ const Index = () => {
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-nebula rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Atom className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-orbitron font-bold mb-4">Quantum Research</h3>
+              <h3 className="text-xl font-orbitron font-bold mb-4">Scientific research/h3>
               <p className="text-muted-foreground">
-                Unlocking the mysteries of quantum mechanics to revolutionize computing and communication.
+               Training students in scientific research and how to write it.
               </p>
             </div>
 
@@ -121,7 +120,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-orbitron font-bold mb-4">Global Impact</h3>
               <p className="text-muted-foreground">
-                Creating solutions that benefit all of humanity through collaborative scientific endeavors.
+                Finding solutions that benefit students through collaborative scientific endeavors.
               </p>
             </div>
           </div>
