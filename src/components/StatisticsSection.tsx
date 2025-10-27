@@ -73,19 +73,19 @@ export function StatisticsSection() {
   const stats = [
     {
       icon: Users,
-      value: 89,
+      value: 24,
       label: 'Total Members',
       suffix: '',
     },
     {
       icon: Calendar,
-      value: 156,
+      value: 22,
       label: 'Events Hosted',
       suffix: '',
     },
     {
       icon: Beaker,
-      value: 98,
+      value: 14,
       label: 'Research Projects',
       suffix: '',
     },
