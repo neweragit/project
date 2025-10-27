@@ -26,8 +26,7 @@ export function HeroSection() {
             NEW ERA
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Embark on humanity's greatest journey into the cosmos. 
-            The future of scientific discovery awaits.
+        Embark on the greatest journey of your university life. The future of scientific discovery awaits you.
           </p>
         </div>
 
