@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut, UserCircle, Shield, LayoutDashboard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo.png';
-import { Button } from '@/components/ui/button'; // ensure Button is imported
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,7 +17,6 @@ export function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -33,17 +32,20 @@ export function Header() {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <header 
+    <header
       className={`fixed top-4 left-4 right-4 z-40 transition-all duration-300 rounded-xl ${
-        isScrolled 
-          ? 'bg-background/60 backdrop-blur-lg border border-border/30 shadow-cosmic' 
+        isScrolled
+          ? 'bg-background/60 backdrop-blur-lg border border-border/30 shadow-cosmic'
           : 'bg-background/20 backdrop-blur-sm border border-border/20'
       }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105">
+          <Link
+            to="/"
+            className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105"
+          >
             <img src={logo} alt="NEW ERA" className="h-10 w-10" />
             <span className="text-xl font-orbitron font-bold text-glow">NEW ERA</span>
           </Link>
@@ -56,7 +58,7 @@ export function Header() {
                 to={item.href}
                 className={`text-sm font-medium transition-all duration-300 ${
                   item.name === 'T2T'
-                    ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold hover:from-[#5ce1e6] hover:to-[#6772ff]'
+                    ? 'px-4 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-[#5ce1e6] to-[#6772ff] shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300'
                     : isActive(item.href)
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-primary'
@@ -73,8 +75,8 @@ export function Header() {
             {user ? (
               <div className="flex items-center space-x-4">
                 {userProfile?.role === 'Administrator' && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => navigate('/admin')}
                     className="border-primary/50 hover:border-primary"
                   >
@@ -82,24 +84,24 @@ export function Header() {
                     Admin
                   </Button>
                 )}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => navigate('/dashboard')}
                   className="border-primary/50 hover:border-primary"
                 >
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Dashboard
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => navigate('/profile')}
                   className="border-primary/50 hover:border-primary"
                 >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Button>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={signOut}
                   className="text-destructive hover:text-destructive"
                 >
@@ -109,8 +111,8 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => navigate('/login')}
                   className="border-primary/50 hover:border-primary"
                 >
@@ -126,11 +128,7 @@ export function Header() {
             className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            {isMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
@@ -144,7 +142,7 @@ export function Header() {
                   to={item.href}
                   className={`text-sm font-medium transition-all duration-300 ${
                     item.name === 'T2T'
-                      ? 'bg-gradient-to-r from-[#004080] to-[#20A4B1] bg-clip-text text-transparent font-bold hover:from-[#5ce1e6] hover:to-[#6772ff]'
+                      ? 'px-4 py-2 rounded-lg text-center font-bold text-white bg-gradient-to-r from-[#5ce1e6] to-[#6772ff] shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300'
                       : isActive(item.href)
                       ? 'text-primary'
                       : 'text-muted-foreground hover:text-primary'
@@ -155,7 +153,7 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-            
+
             <div className="mt-6 pt-6 border-t border-border/30">
               <div className="flex items-center justify-between mb-4">
                 <ThemeToggle />
@@ -163,8 +161,8 @@ export function Header() {
               {user ? (
                 <div className="flex flex-col space-y-3">
                   {userProfile?.role === 'Administrator' && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         navigate('/admin');
                         setIsMenuOpen(false);
@@ -175,8 +173,8 @@ export function Header() {
                       Admin
                     </Button>
                   )}
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => {
                       navigate('/dashboard');
                       setIsMenuOpen(false);
@@ -186,8 +184,8 @@ export function Header() {
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Dashboard
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => {
                       navigate('/profile');
                       setIsMenuOpen(false);
@@ -197,8 +195,8 @@ export function Header() {
                     <User className="w-4 h-4 mr-2" />
                     Profile
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       signOut();
                       setIsMenuOpen(false);
@@ -210,8 +208,8 @@ export function Header() {
                   </Button>
                 </div>
               ) : (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     navigate('/login');
                     setIsMenuOpen(false);
