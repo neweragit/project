@@ -17,8 +17,8 @@ export function Footer() {
           {/* Logo and Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <img src={logo} alt="RVLTI" className="h-10 w-10" />
-              <span className="text-xl font-orbitron font-bold text-glow">RVLTI</span>
+              <img src={logo} alt="NEW ERA" className="h-10 w-10" />
+              <span className="text-xl font-orbitron font-bold text-glow">NEW ERA</span>
             </div>
             <p className="text-muted-foreground max-w-md">
               Leading humanity into the new era of scientific discovery and cosmic exploration.
@@ -49,32 +49,37 @@ export function Footer() {
             </nav>
           </div>
 
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-orbitron font-semibold">Contact</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-muted-foreground text-sm">ali2003fac@gmail.com</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-muted-foreground text-sm">+213669028650</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-muted-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                  Kasdi Merbah University, Central Campus, Faculty of Medicine, Ouargla, Algeria
-                </span>
-              </div>
-            </div>
-          </div>
+       {/* Contact Info */}
+<div className="space-y-4">
+  <h3 className="text-lg font-orbitron font-semibold">Contact</h3>
+  <div className="space-y-3">
+    {/* Email */}
+    <div className="flex items-center space-x-3">
+      <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center shrink-0">
+        <Mail className="w-5 h-5 text-white" />
+      </div>
+      <span className="text-muted-foreground text-sm">ali2003fac@gmail.com</span>
+    </div>
+
+    {/* Phone */}
+    <div className="flex items-center space-x-3">
+      <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center shrink-0">
+        <Phone className="w-5 h-5 text-white" />
+      </div>
+      <span className="text-muted-foreground text-sm">+213669028650</span>
+    </div>
+
+    {/* Address */}
+    <div className="flex items-center space-x-3">
+      <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center shrink-0">
+        <MapPin className="w-[18px] h-[18px] text-white" strokeWidth={2.2} />
+      </div>
+      <span className="text-muted-foreground text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+        Kasdi Merbah University, Central Campus, Faculty of Medicine, Ouargla, Algeria
+      </span>
+    </div>
+  </div>
+</div>
 
           {/* Back to Top */}
           <div className="space-y-4">
