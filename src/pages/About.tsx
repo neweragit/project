@@ -39,7 +39,7 @@ export default function About() {
     },
     {
       icon: Zap,
-      title: 'Events,
+      title: 'Events',
       description: '',
       progress: 80
     },
