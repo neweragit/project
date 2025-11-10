@@ -26,7 +26,6 @@ export function Header() {
     { name: 'Events', href: '/events' },
     { name: 'Courses', href: '/courses' },
     { name: 'Contact', href: '/contact' },
-    { name: 'T2T', href: 'https://time2thrive.vercel.app/' },
   ];
 
   const isActive = (href: string) => location.pathname === href;
