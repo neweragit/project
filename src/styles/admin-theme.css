@@ -1,0 +1,45 @@
+/* Admin Dashboard Theme Enhancements */
+.admin-nav-button {
+  @apply w-full justify-start transition-colors;
+}
+
+.admin-nav-button.active {
+  @apply bg-primary/10 text-primary hover:bg-primary/20;
+}
+
+.admin-nav-button:not(.active) {
+  @apply text-muted-foreground hover:text-foreground hover:bg-accent/10;
+}
+
+.admin-card {
+  @apply bg-card text-card-foreground border border-border/40 shadow-sm hover:border-border/60 transition-colors;
+}
+
+.admin-sidebar {
+  @apply fixed inset-y-0 left-0 z-50 w-64 transform border-r bg-card/95 backdrop-blur-sm text-card-foreground transition-transform duration-200 ease-in-out lg:static lg:translate-x-0;
+}
+
+.admin-header {
+  @apply sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm;
+}
+
+/* Dark mode enhancements */
+.dark .admin-nav-button.active {
+  @apply bg-primary/20 text-primary hover:bg-primary/30;
+}
+
+.dark .admin-nav-button:not(.active) {
+  @apply text-muted-foreground hover:text-foreground hover:bg-accent/20;
+}
+
+.dark .admin-card {
+  @apply bg-card/50 border-border/30 hover:border-border/50;
+}
+
+.dark .admin-sidebar {
+  @apply bg-card/90 border-border/30;
+}
+
+.dark .admin-header {
+  @apply bg-background/90 border-border/30;
+}
