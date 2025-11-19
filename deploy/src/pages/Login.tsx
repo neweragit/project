@@ -23,9 +23,6 @@ import {
   Globe, 
   Shield 
 } from 'lucide-react';
-import { Resend } from 'resend';
-
-const resend = new Resend('re_ikotQkQD_2e827uTPw6a7rJx6TYryfhYW');
 
 interface LoginFormData {
   email: string;
@@ -227,34 +224,15 @@ export default function Login() {
 
     try {
       const result = await auth.requestPasswordReset(forgotPasswordEmail);
-
+      
       if (result.data) {
         setSuccess(result.data.message || 'Password reset code sent to your email');
         setOtpSent(true);
         setForgotPasswordStep('otp');
-
-        // Send the OTP code via the server-side API
-        const emailResponse = await fetch('/supabase/functions/requestPasswordReset', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: forgotPasswordEmail,
-            otpCode: result.data.otpCode,
-          }),
-        });
-
-        const emailData = await emailResponse.json();
-
-        if (!emailData.success) {
-          setError('Failed to send email. Please try again.');
-        }
-
         // For development - show OTP in console and state
         if (result.data.otpCode) {
           setDevelopmentOtp(result.data.otpCode);
-        }
+          }
       } else {
         setError(result.error || 'Failed to send reset code');
       }

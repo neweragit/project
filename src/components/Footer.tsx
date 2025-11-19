@@ -2,9 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import logo from '@/assets/logo.png';
+import { useTheme } from '@/components/ThemeProvider';
+import logo from '/download.png';
+import logoLight from '/logo_light_mode.png';
 
 export function Footer() {
+  const { theme } = useTheme();
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -17,8 +20,8 @@ export function Footer() {
           {/* Logo and Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <img src={logo} alt="NEW ERA" className="h-10 w-10" />
-              <span className="text-xl font-orbitron font-bold text-glow">NEW ERA</span>
+              <img src={theme === 'light' ? logoLight : logo} alt="NEW ERA" className="h-30 w-30" />
+              {/* Removed text label since logo contains name */}
             </div>
             <p className="text-muted-foreground max-w-md">
               Leading humanity into the new era of scientific discovery and cosmic exploration.
@@ -94,7 +97,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-border/50 text-center">
           <p className="text-muted-foreground">
-            © 2025 RVLTI - NEW ERA. All rights reserved.
+            © 2025 New Era Club - NEW ERA. All rights reserved.
           </p>
         </div>
       </div>

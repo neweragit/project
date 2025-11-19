@@ -16,8 +16,8 @@ export function Footer() {
           {/* Logo and Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <img src={logo} alt="RVLTI" className="h-10 w-10" />
-              <span className="text-xl font-orbitron font-bold text-glow">RVLTI</span>
+              <img src={logo} alt="New Era Club" className="h-10 w-10" />
+              <span className="text-xl font-orbitron font-bold text-glow">New Era Club</span>
             </div>
             <p className="text-muted-foreground max-w-md">
               Leading humanity into the new era of scientific discovery and cosmic exploration.
@@ -69,7 +69,7 @@ export function Footer() {
                 <div className="w-8 h-8 bg-gradient-cosmic rounded-full flex items-center justify-center">
                   <Mail className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">info@rvlti.org</span>
+                <span className="text-muted-foreground text-sm">info@New Era Club.org</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-nebula rounded-full flex items-center justify-center">
@@ -102,7 +102,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-border/50 text-center">
           <p className="text-muted-foreground">
-            © 2024 RVLTI - NEW ERA. All rights reserved.
+            © 2024 New Era Club - NEW ERA. All rights reserved.
           </p>
         </div>
       </div>

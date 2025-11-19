@@ -12,8 +12,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Resend API token - prefer reading from env. If you intentionally want to hardcode for testing,
 // you can set the fallback below but avoid committing secrets to source control.
-// Example env var: VITE_RESEND_API_KEY=re_xxx
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY || 're_6JLjjcpY_Q7dVyUsxfD4pRHjmJ5CQSpFp';
+// Example env var: VITE_RESEND_API=re_xxx
+const RESEND_API_KEY = import.meta.env.VITE_RESEND_API || import.meta.env.RESEND_API_KEY || 're_6JLjjcpY_Q7dVyUsxfD4pRHjmJ5CQSpFp';
 
 // Database Types
 export interface Account {
@@ -422,7 +422,7 @@ export const authHelpers = {
     }
   },
 
-  // OTP-based Password Reset Functions
+    // OTP-based Password Reset Functions
   async requestPasswordReset(email: string) {
     try {
       // Check if email exists in accounts
@@ -439,8 +439,8 @@ export const authHelpers = {
       // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // Set expiration time (10 minutes from now)
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      // Set expiration time (15 minutes from now)
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
       const formattedExpiry = expiresAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
       // Store OTP in database
@@ -459,86 +459,82 @@ export const authHelpers = {
         return { data: null, error: 'Failed to generate OTP. Please try again.' };
       }
 
-        // Send email via Resend SDK directly from the client (note: for production you should
-        // send through a server to keep API keys secret). The HTML is dynamic and uses the
-        // generated otpCode and formattedExpiry values.
-        const htmlTemplate = `
-<div style="font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: #ffffff; padding: 28px; border-radius: 14px; max-width: 480px; margin: auto; box-shadow: 0 0 18px rgba(0, 217, 255, 0.2);">
-  <a href="[Website Link]" target="_blank" style="text-decoration: none;">
-    <img src="cid:logo.png" alt="logo" height="40" style="display: block; margin: 0 auto 24px;" />
-  </a>
+        // Use our new email service to send the password reset email
+        const { emailService } = await import('./email');
+        
+        const emailResult = await emailService.sendPasswordResetEmail({
+          to: email,
+          passcode: otpCode,
+          expirationTime: '15 minutes',
+          resetUrl: 'https://new-era-club.vercel.app/login'
+        });
 
-  <h2 style="text-align: center; font-size: 20px; color: #38bdf8; margin-bottom: 24px;">🔐 Welcome to the <strong>New Era</strong> of security</h2>
-
+        if (!emailResult.success) {
+          console.error('Failed to send password reset email:', emailResult.error);
+          
+          // Fallback: Try server proxy if email service fails
+          const resendProxyUrl = import.meta.env.VITE_EMAIL_PROXY_URL_RESEND;
+          if (resendProxyUrl) {
+            try {
+              const proxyRes = await fetch(resendProxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  from: 'NEW ERA <noreply@new-era-club.vercel.app>',
+                  to: email,
+                  subject: '🔐 Password Reset Code - NEW ERA',
+                  html: `
+<div style="font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, #3B06CD 0%, #7C3AED 35%, #F66753 70%, #FA8F3D 100%); color: #ffffff; padding: 28px; border-radius: 14px; max-width: 480px; margin: auto; box-shadow: 0 12px 40px rgba(250, 143, 61, 0.3);">
+  <h2 style="text-align: center; font-size: 22px; color: #ffffff; margin-bottom: 24px;">🔐 Password Reset Request</h2>
   <p style="font-size: 16px; text-align: center; margin-bottom: 12px;">
-    To proceed, please use the following One-Time Password (OTP):
+    Hi there! You requested a password reset for: <strong>${email}</strong><br/><br/>
+    Use this One-Time Password to reset your password:
   </p>
-
-  <p style="font-size: 32px; font-weight: bold; text-align: center; letter-spacing: 4px; color: #00d9ff; margin: 20px 0;">
+  <p style="font-size: 40px; font-weight: bold; text-align: center; letter-spacing: 8px; color: #ffffff; margin: 20px 0; text-shadow: 0 0 12px rgba(250,143,61,0.6);">
     ${otpCode}
   </p>
-
-  <p style="text-align: center; font-size: 14px; color: #cbd5e1;">
-    This code is valid for 15 minutes, until <strong>${formattedExpiry}</strong>.
+  <p style="text-align: center; font-size: 14px; color: rgba(255,255,255,0.9);">
+    ⏰ This code is valid for 15 minutes, expires at <strong>${formattedExpiry}</strong>.
   </p>
-
-  <hr style="border: none; border-top: 1px solid #334155; margin: 24px 0;" />
-
-  <p style="font-size: 13px; color: #94a3b8; line-height: 1.6;">
-    ⚠️ Do <strong>not</strong> share this code with anyone. If you didn’t request this OTP, you can safely ignore this email.
-    <br /><br />
-    NEWERA will never contact you asking for login codes or credentials. Stay safe and beware of phishing attempts.
-  </p>
-
-  <p style="text-align: center; margin-top: 28px; color: #38bdf8; font-size: 14px;">
-    Thank you for trusting <strong>NEW ERA</strong> ✨
+  <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 18px; margin: 32px 0;">
+    <p style="font-size: 14px; color: #ffffff; line-height: 1.7; margin: 0;">
+      ⚠️ <strong>Security Alert:</strong> Never share this code with anyone.<br/>
+      If you didn't request this reset, please ignore this email.<br/><br/>
+      <span style="color: #FA8F3D; font-weight: 600;">NEW ERA will NEVER ask for your login codes.</span>
+    </p>
+  </div>
+  <p style="text-align: center; margin-top: 28px; color: #ffffff; font-size: 15px;">
+    Thank you for trusting <strong style="color: #FA8F3D;">NEW ERA</strong> ✨
   </p>
 </div>
-        `;
+                  `
+                })
+              });
 
-        // First prefer server-side proxy endpoint if configured. This keeps API keys secret
-        // and avoids CORS/network resolution issues from the browser.
-        // Only server-side proxy is supported for sending OTP emails. This prevents
-        // exposing API keys to clients and avoids browser network/CORS issues.
-        const resendProxyUrl = import.meta.env.VITE_EMAIL_PROXY_URL_RESEND;
-        if (!resendProxyUrl) {
-          console.error('Resend proxy URL is not configured: set VITE_EMAIL_PROXY_URL_RESEND');
-          return { data: null, error: 'Email sending is not configured. Please contact support.' };
-        }
-
-        try {
-          const proxyRes = await fetch(resendProxyUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              from: 'onboarding@resend.dev',
-              to: email,
-              subject: 'Your NEW ERA OTP',
-              html: htmlTemplate
-            })
-          });
-
-          const proxyJson = await proxyRes.json().catch(() => ({}));
-          if (!proxyRes.ok) {
-            console.error('❌ Resend proxy responded with error:', proxyRes.status, proxyJson);
-            return { data: null, error: proxyJson?.error || `Proxy error: ${proxyRes.status}` };
+              if (!proxyRes.ok) {
+                throw new Error(`Proxy error: ${proxyRes.status}`);
+              }
+              
+              console.log('✅ Email sent via fallback proxy');
+            } catch (err) {
+              console.error('❌ Both email service and proxy failed:', err);
+            }
           }
-
-          console.log('✅ Email forwarded to resend proxy successfully:', proxyJson);
-        } catch (err) {
-          console.error('❌ Error sending email via resend proxy:', err);
-          return { data: null, error: 'Failed to forward email to proxy' };
+        } else {
+          console.log('✅ Password reset email sent successfully via email service');
         }
 
         // In development, always log the OTP to console for testing
-        console.log('📧 [DEVELOPMENT/FALLBACK] Password Reset Code for:', email);
-        console.log('🔐 Your OTP Code:', otpCode);
-        console.log('⏰ Expires at:', formattedExpiry);
+        if (import.meta.env.DEV) {
+          console.log('📧 [DEVELOPMENT] Password Reset Code for:', email);
+          console.log('🔐 Your OTP Code:', otpCode);
+          console.log('⏰ Expires at:', formattedExpiry);
+        }
 
         return {
           data: {
-            message: 'Password reset code sent (via Resend SDK or logged in console for development)',
-            ...(process.env.NODE_ENV === 'development' && { otpCode })
+            message: 'Password reset code sent to your email address',
+            ...(import.meta.env.DEV && { otpCode })
           },
           error: null
         };

@@ -4,7 +4,9 @@ import { Menu, X, User, LogOut, UserCircle, Shield, LayoutDashboard } from 'luci
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/logo.png';
+import { useTheme } from '@/components/ThemeProvider';
+import logo from '/download.png';
+import logoLight from '/logo_light_mode.png';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,6 +14,7 @@ export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, userProfile, signOut } = useAuth();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,8 +48,7 @@ export function Header() {
             to="/"
             className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105"
           >
-            <img src={logo} alt="NEW ERA" className="h-10 w-10" />
-            <span className="text-xl font-orbitron font-bold text-glow">NEW ERA</span>
+            <img src={theme === 'light' ? logoLight : logo} alt="NEW ERA" className="h-20 w-30" />
           </Link>
 
           {/* Desktop Navigation */}

@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import About from "./pages/About";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyDashboard from "./pages/MyDashboard";
+import EmailTest from "./pages/EmailTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -101,6 +102,7 @@ const App = () => {
                     <Route path="/dashboard" element={<MyDashboard />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/email-test" element={<EmailTest />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
