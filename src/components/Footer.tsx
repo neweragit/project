@@ -1,16 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/components/ThemeProvider';
 import logo from '/download.png';
 import logoLight from '/logo_light_mode.png';
 
 export function Footer() {
   const { theme } = useTheme();
+  const [siteStats, setSiteStats] = useState<{ contact_email?: string; contact_phone?: string } | null>(null);
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.from('site_stats').select('contact_email, contact_phone').limit(1).single();
+        if (!error && data) setSiteStats(data as any);
+      } catch (e) {}
+    };
+    load();
+  }, []);
 
   return (
     <footer className="bg-card/50 backdrop-blur-md border-t border-border/50 mt-20 relative z-10">
@@ -53,7 +65,7 @@ export function Footer() {
           </div>
 
        {/* Contact Info */}
-<div className="space-y-4">
+          <div className="space-y-4">
   <h3 className="text-lg font-orbitron font-semibold">Contact</h3>
   <div className="space-y-3">
     {/* Email */}
@@ -61,7 +73,9 @@ export function Footer() {
       <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center shrink-0">
         <Mail className="w-5 h-5 text-white" />
       </div>
-      <span className="text-muted-foreground text-sm">ali2003fac@gmail.com</span>
+      <span className="text-muted-foreground text-sm">
+        <a className="hover:underline" href={`mailto:${siteStats?.contact_email ?? 'ali2003fac@gmail.com'}`}>{siteStats?.contact_email ?? 'ali2003fac@gmail.com'}</a>
+      </span>
     </div>
 
     {/* Phone */}
@@ -69,7 +83,9 @@ export function Footer() {
       <div className="w-10 h-10 bg-gradient-cosmic rounded-full flex items-center justify-center shrink-0">
         <Phone className="w-5 h-5 text-white" />
       </div>
-      <span className="text-muted-foreground text-sm">+213669028650</span>
+      <span className="text-muted-foreground text-sm">
+        <a className="hover:underline" href={`tel:${siteStats?.contact_phone ?? '+213669028650'}`}>{siteStats?.contact_phone ?? '+213669028650'}</a>
+      </span>
     </div>
 
     {/* Address */}

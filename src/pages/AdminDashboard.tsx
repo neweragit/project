@@ -28,6 +28,7 @@ import {
   BarChart3,
   Users,
   Calendar,
+  Beaker,
   Globe,
   Menu,
   UserCheck,
@@ -114,6 +115,7 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { name: 'Overview', icon: Home, tab: 'overview' },
+  { name: 'Stats', icon: BarChart3, tab: 'stats' },
   { name: 'Users', icon: Users, tab: 'users' },
   { name: 'Events', icon: Calendar, tab: 'events' },
   { name: 'Courses', icon: BookOpen, tab: 'courses' },
@@ -169,7 +171,7 @@ interface Ticket {
   user?: { id: string; full_name: string; email: string };
 }
 
-type ActiveTab = 'overview' | 'users' | 'events' | 'fields' | 'messages' | 'tickets' | 'courses' | 'enrollments';
+type ActiveTab = 'overview' | 'stats' | 'users' | 'events' | 'fields' | 'messages' | 'tickets' | 'courses' | 'enrollments';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -194,6 +196,16 @@ const AdminDashboard: React.FC = () => {
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [recentActions, setRecentActions] = useState<AdminAction[]>([]);
   const [courseEnrollmentStats, setCourseEnrollmentStats] = useState<{ title: string; count: number }[]>([]);
+  const [siteStats, setSiteStats] = useState<{ total_members?: number; events_hosted?: number; research_projects?: number; success_rate?: string; contact_email?: string; contact_phone?: string } | null>(null);
+  const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
+  const [statsForm, setStatsForm] = useState({
+    total_members: 0,
+    events_hosted: 0,
+    research_projects: 0,
+    success_rate: '0',
+    contact_email: '',
+    contact_phone: ''
+  });
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -458,6 +470,59 @@ const AdminDashboard: React.FC = () => {
     }
   }, [user, userProfile, navigate]);
 
+  const openStatsDialog = () => {
+    setStatsForm({
+      total_members: siteStats?.total_members ?? 0,
+      events_hosted: siteStats?.events_hosted ?? 0,
+      research_projects: siteStats?.research_projects ?? 0,
+      success_rate: siteStats?.success_rate ?? '0',
+      contact_email: siteStats?.contact_email ?? '',
+      contact_phone: siteStats?.contact_phone ?? ''
+    });
+    setIsStatsDialogOpen(true);
+  };
+
+  const handleStatsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setStatsForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveStats = async () => {
+    try {
+      if (siteStats && (siteStats as any).id) {
+        const { error } = await supabase.from('site_stats').update({
+          total_members: Number(statsForm.total_members),
+          events_hosted: Number(statsForm.events_hosted),
+          research_projects: Number(statsForm.research_projects),
+          success_rate: String(statsForm.success_rate),
+          contact_email: statsForm.contact_email,
+          contact_phone: statsForm.contact_phone,
+          updated_at: new Date().toISOString()
+        }).eq('id', (siteStats as any).id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('site_stats').insert([{
+          total_members: Number(statsForm.total_members),
+          events_hosted: Number(statsForm.events_hosted),
+          research_projects: Number(statsForm.research_projects),
+          success_rate: String(statsForm.success_rate),
+          contact_email: statsForm.contact_email,
+          contact_phone: statsForm.contact_phone
+        }]);
+        if (error) throw error;
+        if (data && data[0]) setSiteStats(data[0] as any);
+      }
+      // refresh
+      const { data: refreshed, error: rErr } = await supabase.from('site_stats').select('*').limit(1).single();
+      if (!rErr && refreshed) setSiteStats(refreshed as any);
+      showToast('Site stats saved', 'success');
+      setIsStatsDialogOpen(false);
+    } catch (err) {
+      console.error('Save stats error:', err);
+      showToast(err instanceof Error ? err.message : 'Failed to save stats', 'error');
+    }
+  };
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
@@ -611,6 +676,13 @@ const AdminDashboard: React.FC = () => {
             count: course.course_enrollments?.[0]?.count || 0
           })).sort((a, b) => b.count - a.count);
           setCourseEnrollmentStats(stats);
+        // Fetch site-wide stats (site_stats table)
+        try {
+          const { data: siteStatsData, error: siteStatsError } = await supabase.from('site_stats').select('*').limit(1).single();
+          if (!siteStatsError && siteStatsData) setSiteStats(siteStatsData as any);
+        } catch (e) {
+          // ignore
+        }
         }
 
         // Mock recent actions
@@ -1541,6 +1613,7 @@ const AdminDashboard: React.FC = () => {
             <nav className="space-y-2 lg:space-y-3">
               {[
                 { id: 'overview', icon: BarChart3, label: 'Overview' },
+                { id: 'stats', icon: BarChart3, label: 'Stats' },
                 { id: 'users', icon: Users, label: 'Users' },
                 { id: 'events', icon: Calendar, label: 'Events' },
                 { id: 'courses', icon: BookOpen, label: 'Courses' },
@@ -1859,6 +1932,106 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </>
                 )}
+                
+                {activeTab === 'stats' && (
+                  <>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Site Statistics</h3>
+                      <div>
+                        <Button variant="outline" onClick={openStatsDialog}>Edit Stats</Button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 lg:gap-4 md:grid-cols-2 lg:grid-cols-4">
+                      <Card className="p-3 lg:p-4 bg-card">
+                        <div className="flex items-center gap-3 lg:gap-4">
+                          <Users className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
+                          <div>
+                            <p className="text-xs lg:text-sm text-muted-foreground">Total Members</p>
+                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.total_members ?? 0}</h3>
+                          </div>
+                        </div>
+                      </Card>
+                      <Card className="p-3 lg:p-4 bg-card">
+                        <div className="flex items-center gap-3 lg:gap-4">
+                          <Calendar className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
+                          <div>
+                            <p className="text-xs lg:text-sm text-muted-foreground">Events Hosted</p>
+                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.events_hosted ?? 0}</h3>
+                          </div>
+                        </div>
+                      </Card>
+                      <Card className="p-3 lg:p-4 bg-card">
+                        <div className="flex items-center gap-3 lg:gap-4">
+                          <Beaker className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
+                          <div>
+                            <p className="text-xs lg:text-sm text-muted-foreground">Research Projects</p>
+                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.research_projects ?? 0}</h3>
+                          </div>
+                        </div>
+                      </Card>
+                      <Card className="p-3 lg:p-4 bg-card">
+                        <div className="flex items-center gap-3 lg:gap-4">
+                          <BarChart3 className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
+                          <div>
+                            <p className="text-xs lg:text-sm text-muted-foreground">Success Rate</p>
+                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.success_rate ?? '0'}%</h3>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+
+                    <div className="mt-6">
+                      <Card className="p-4">
+                        <h3 className="text-base lg:text-lg font-semibold mb-2">Contact Info</h3>
+                        <p className="text-sm text-muted-foreground">Email: {siteStats?.contact_email ?? 'Not set'}</p>
+                        <p className="text-sm text-muted-foreground">Phone: {siteStats?.contact_phone ?? 'Not set'}</p>
+                      </Card>
+                    </div>
+                  </>
+                )}
+
+                <Dialog open={isStatsDialogOpen} onOpenChange={setIsStatsDialogOpen}>
+                  <DialogTrigger />
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Site Statistics</DialogTitle>
+                      <DialogDescription>Update site-wide statistics and contact information.</DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-3 mt-2">
+                      <div>
+                        <Label>Total Members</Label>
+                        <Input name="total_members" value={statsForm.total_members} onChange={handleStatsChange} type="number" />
+                      </div>
+                      <div>
+                        <Label>Events Hosted</Label>
+                        <Input name="events_hosted" value={statsForm.events_hosted} onChange={handleStatsChange} type="number" />
+                      </div>
+                      <div>
+                        <Label>Research Projects</Label>
+                        <Input name="research_projects" value={statsForm.research_projects} onChange={handleStatsChange} type="number" />
+                      </div>
+                      <div>
+                        <Label>Success Rate (%)</Label>
+                        <Input name="success_rate" value={statsForm.success_rate} onChange={handleStatsChange} />
+                      </div>
+                      <div>
+                        <Label>Contact Email</Label>
+                        <Input name="contact_email" value={statsForm.contact_email} onChange={handleStatsChange} />
+                      </div>
+                      <div>
+                        <Label>Contact Phone</Label>
+                        <Input name="contact_phone" value={statsForm.contact_phone} onChange={handleStatsChange} />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={() => setIsStatsDialogOpen(false)}>Cancel</Button>
+                      <Button onClick={handleSaveStats}>Save</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 
                 {activeTab === 'users' && (
                   <Card className="p-4">

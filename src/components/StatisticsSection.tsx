@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Users, Calendar, Beaker, TrendingUp } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface StatItemProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -52,8 +53,18 @@ function StatItem({ icon: Icon, value, label, suffix = '', isVisible }: StatItem
 export function StatisticsSection() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const [dbStats, setDbStats] = useState<{ total_members: number; events_hosted: number; research_projects: number; success_rate: string } | null>(null);
 
   useEffect(() => {
+    // load site stats from database
+    const loadStats = async () => {
+      try {
+        const { data, error } = await supabase.from('site_stats').select('total_members, events_hosted, research_projects, success_rate').limit(1).single();
+        if (!error && data) setDbStats(data as any);
+      } catch (e) {}
+    };
+    loadStats();
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -69,29 +80,28 @@ export function StatisticsSection() {
 
     return () => observer.disconnect();
   }, []);
-
   const stats = [
     {
       icon: Users,
-      value: 24,
+      value: dbStats ? Number(dbStats.total_members || 0) : 0,
       label: 'Total Members',
       suffix: '',
     },
     {
       icon: Calendar,
-      value: 22,
+      value: dbStats ? Number(dbStats.events_hosted || 0) : 0,
       label: 'Events Hosted',
       suffix: '',
     },
     {
       icon: Beaker,
-      value: 14,
+      value: dbStats ? Number(dbStats.research_projects || 0) : 0,
       label: 'Research Projects',
       suffix: '',
     },
     {
       icon: TrendingUp,
-      value: 98,
+      value: dbStats ? parseInt(String(dbStats.success_rate || '0'), 10) : 0,
       label: 'Success Rate',
       suffix: '%',
     },

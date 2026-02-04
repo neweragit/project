@@ -1,13 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import logo from '@/assets/logo.png';
+import { supabase } from '@/lib/supabase';
 
 export function Footer() {
+  const [siteStats, setSiteStats] = useState<{ contact_email?: string; contact_phone?: string } | null>(null);
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.from('site_stats').select('contact_email, contact_phone').limit(1).single();
+        if (!error && data) setSiteStats(data as any);
+      } catch (e) {}
+    };
+    load();
+  }, []);
 
   return (
     <footer className="bg-card/50 backdrop-blur-md border-t border-border/50 mt-20 relative z-10">
@@ -69,13 +81,17 @@ export function Footer() {
                 <div className="w-8 h-8 bg-gradient-cosmic rounded-full flex items-center justify-center">
                   <Mail className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">info@New Era Club.org</span>
+                <span className="text-muted-foreground text-sm">
+                  <a className="hover:underline" href={`mailto:${siteStats?.contact_email ?? 'ali2003fac@gmail.com'}`}>{siteStats?.contact_email ?? 'ali2003fac@gmail.com'}</a>
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-nebula rounded-full flex items-center justify-center">
                   <Phone className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-muted-foreground text-sm">+41 22 767 84 84</span>
+                <span className="text-muted-foreground text-sm">
+                  <a className="hover:underline" href={`tel:${siteStats?.contact_phone ?? '+213669028650'}`}>{siteStats?.contact_phone ?? '+213669028650'}</a>
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gradient-cosmic rounded-full flex items-center justify-center">

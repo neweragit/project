@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Mail, Phone, MapPin, Send, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/supabase';
+import { auth, supabase } from '@/lib/supabase';
 
 const Contact = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [siteStats, setSiteStats] = useState<{ contact_email?: string; contact_phone?: string } | null>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -93,6 +94,16 @@ const Contact = () => {
       [field]: value
     }));
   };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.from('site_stats').select('contact_email, contact_phone').limit(1).single();
+        if (!error && data) setSiteStats(data as any);
+      } catch (e) {}
+    };
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -217,10 +228,11 @@ const Contact = () => {
                     <div className="w-12 h-12 bg-gradient-cosmic rounded-full flex items-center justify-center flex-shrink-0">
                       <Mail className="w-6 h-6 text-white" />
                     </div>
-                    <div className="space-y-1">
+                      <div className="space-y-1">
                       <h3 className="font-orbitron font-semibold">Email</h3>
-                      <p className="text-muted-foreground">contact@newera-New Era Club.org</p>
-                      <p className="text-muted-foreground">research@newera-New Era Club.org</p>
+                      <p className="text-muted-foreground">
+                        <a className="hover:underline" href={`mailto:${siteStats?.contact_email ?? 'ali2003fac@gmail.com'}`}>{siteStats?.contact_email ?? 'ali2003fac@gmail.com'}</a>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -230,10 +242,11 @@ const Contact = () => {
                     <div className="w-12 h-12 bg-gradient-nebula rounded-full flex items-center justify-center flex-shrink-0">
                       <Phone className="w-6 h-6 text-white" />
                     </div>
-                    <div className="space-y-1">
+                      <div className="space-y-1">
                       <h3 className="font-orbitron font-semibold">Phone</h3>
-                      <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                      <p className="text-muted-foreground">+44 20 7946 0958</p>
+                      <p className="text-muted-foreground">
+                        <a className="hover:underline" href={`tel:${siteStats?.contact_phone ?? '+213669028650'}`}>{siteStats?.contact_phone ?? '+213669028650'}</a>
+                      </p>
                     </div>
                   </div>
                 </div>
