@@ -9,9 +9,22 @@ import logo from '@/assets/logo.png';
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [logoSrc, setLogoSrc] = useState('/logo_light_mode.png');
   const location = useLocation();
   const navigate = useNavigate();
   const { user, userProfile, signOut } = useAuth();
+
+  // Detect theme (light/dark) and update logo
+  useEffect(() => {
+    const updateLogo = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setLogoSrc(isDark ? '/download.png' : '/logo_light_mode.png');
+    };
+    updateLogo();
+    const observer = new MutationObserver(updateLogo);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,8 +57,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105">
-            <img src={logo} alt="NEW ERA" className="h-10 w-10" />
-            <span className="text-xl font-orbitron font-bold text-glow">NEW ERA</span>
+            <img src={logoSrc} alt="NEW ERA" className="h-20 w-30" />
           </Link>
 
           {/* Desktop Navigation */}
