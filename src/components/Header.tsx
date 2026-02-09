@@ -4,9 +4,7 @@ import { Menu, X, User, LogOut, UserCircle, Shield, LayoutDashboard } from 'luci
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/components/ThemeProvider';
-import logo from '/download.png';
-import logoLight from '/logo_light_mode.png';
+import logo from '@/assets/logo.png';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,12 +12,12 @@ export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, userProfile, signOut } = useAuth();
-  const { theme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -28,57 +26,41 @@ export function Header() {
     { name: 'Who We Are', href: '/about' },
     { name: 'Events', href: '/events' },
     { name: 'Courses', href: '/courses' },
+    { name: 'Magazines', href: '/magazines' },
     { name: 'Contact', href: '/contact' },
   ];
 
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <header
+    <header 
       className={`fixed top-4 left-4 right-4 z-40 transition-all duration-300 rounded-xl ${
-        isScrolled
-          ? 'bg-background/60 backdrop-blur-lg border border-border/30 shadow-cosmic'
+        isScrolled 
+          ? 'bg-background/60 backdrop-blur-lg border border-border/30 shadow-cosmic' 
           : 'bg-background/20 backdrop-blur-sm border border-border/20'
       }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105"
-          >
-            <img src={theme === 'light' ? logoLight : logo} alt="NEW ERA" className="h-20 w-30" />
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 hover:scale-105">
+            <img src={logo} alt="NEW ERA" className="h-10 w-10" />
+            <span className="text-xl font-orbitron font-bold text-glow">NEW ERA</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
- {navItems.map((item) =>
-  item.name === 'T2T' ? (
-    <a
-      key={item.name}
-      href={item.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-[#5ce1e6] to-[#6772ff] shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 text-sm"
-    >
-      {item.name}
-    </a>
-  ) : (
-    <Link
-      key={item.name}
-      to={item.href}
-      className={`text-sm font-medium transition-all duration-300 ${
-        isActive(item.href)
-          ? 'text-primary'
-          : 'text-muted-foreground hover:text-primary'
-      }`}
-    >
-      {item.name}
-    </Link>
-  )
-)}
-
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
           </nav>
 
           {/* Desktop Actions */}
@@ -87,33 +69,33 @@ export function Header() {
             {user ? (
               <div className="flex items-center space-x-4">
                 {userProfile?.role === 'Administrator' && (
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
                     onClick={() => navigate('/admin')}
                     className="border-primary/50 hover:border-primary"
                   >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Admin
-                  </Button>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Admin
+                    </Button>
                 )}
-                <Button
-                  variant="outline"
+                <Button 
+                  variant="outline" 
                   onClick={() => navigate('/dashboard')}
                   className="border-primary/50 hover:border-primary"
                 >
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Dashboard
                 </Button>
-                <Button
-                  variant="outline"
+                <Button 
+                  variant="outline" 
                   onClick={() => navigate('/profile')}
                   className="border-primary/50 hover:border-primary"
                 >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Button>
-                <Button
-                  variant="ghost"
+                <Button 
+                  variant="ghost" 
                   onClick={signOut}
                   className="text-destructive hover:text-destructive"
                 >
@@ -123,8 +105,8 @@ export function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
+                <Button 
+                  variant="outline" 
                   onClick={() => navigate('/login')}
                   className="border-primary/50 hover:border-primary"
                 >
@@ -138,9 +120,13 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+            {isMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 
@@ -152,12 +138,8 @@ export function Header() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`text-sm font-medium transition-all duration-300 ${
-                    item.name === 'T2T'
-                      ? 'px-4 py-2 rounded-lg text-center font-bold text-white bg-gradient-to-r from-[#5ce1e6] to-[#6772ff] shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300'
-                      : isActive(item.href)
-                      ? 'text-primary'
-                      : 'text-muted-foreground hover:text-primary'
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -165,16 +147,16 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-
+            
             <div className="mt-6 pt-6 border-t border-border/30">
               <div className="flex items-center justify-between mb-4">
                 <ThemeToggle />
               </div>
-              {user ? (
+                {user ? (
                 <div className="flex flex-col space-y-3">
-                  {userProfile?.role === 'Administrator' && (
-                    <Button
-                      variant="outline"
+                    {userProfile?.role === 'Administrator' && (
+                    <Button 
+                      variant="outline" 
                       onClick={() => {
                         navigate('/admin');
                         setIsMenuOpen(false);
@@ -185,8 +167,8 @@ export function Header() {
                       Admin
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
                     onClick={() => {
                       navigate('/dashboard');
                       setIsMenuOpen(false);
@@ -196,8 +178,8 @@ export function Header() {
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Dashboard
                   </Button>
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
                     onClick={() => {
                       navigate('/profile');
                       setIsMenuOpen(false);
@@ -207,21 +189,21 @@ export function Header() {
                     <User className="w-4 h-4 mr-2" />
                     Profile
                   </Button>
-                  <Button
-                    variant="ghost"
+                  <Button 
+                    variant="ghost" 
                     onClick={() => {
                       signOut();
                       setIsMenuOpen(false);
                     }}
                     className="text-destructive hover:text-destructive w-full justify-start"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </Button>
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
                 </div>
-              ) : (
-                <Button
-                  variant="outline"
+                ) : (
+                <Button 
+                  variant="outline" 
                   onClick={() => {
                     navigate('/login');
                     setIsMenuOpen(false);
@@ -229,10 +211,10 @@ export function Header() {
                   className="border-primary/50 hover:border-primary w-full justify-start"
                 >
                   <UserCircle className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
-              )}
-            </div>
+                      Login
+                    </Button>
+                )}
+              </div>
           </div>
         )}
       </div>

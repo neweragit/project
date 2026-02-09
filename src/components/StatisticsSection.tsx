@@ -80,6 +80,7 @@ export function StatisticsSection() {
 
     return () => observer.disconnect();
   }, []);
+
   const stats = [
     {
       icon: Users,

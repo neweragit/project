@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
  
 import { DataTable } from '@/components/ui/data-table';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AdminSidebar } from '@/components/AdminSidebar';
 import {
   BarChart3,
   Users,
@@ -175,10 +176,11 @@ type ActiveTab = 'overview' | 'stats' | 'users' | 'events' | 'fields' | 'message
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  const activeTab = (searchParams.get('tab') as ActiveTab) || 'overview';
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     totalEvents: 0,
@@ -512,7 +514,6 @@ const AdminDashboard: React.FC = () => {
         if (error) throw error;
         if (data && data[0]) setSiteStats(data[0] as any);
       }
-      // refresh
       const { data: refreshed, error: rErr } = await supabase.from('site_stats').select('*').limit(1).single();
       if (!rErr && refreshed) setSiteStats(refreshed as any);
       showToast('Site stats saved', 'success');
@@ -1587,72 +1588,11 @@ const AdminDashboard: React.FC = () => {
         )}
         
         {/* Sidebar */}
-        <aside className={cn(
-          "fixed left-0 top-0 z-30 h-screen border-r bg-card/95 backdrop-blur-md transition-all duration-300 lg:translate-x-0",
-          "w-full lg:w-64", // Full width on mobile, normal width on desktop
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
-          {/* NEW ERA Header */}
-          <div className="p-4 lg:p-6 border-b bg-gradient-to-r from-primary/10 to-purple-500/10">
-            <div className="flex items-center justify-between lg:justify-center">
-              <span className="text-xl lg:text-2xl font-orbitron font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                NEW ERA
-              </span>
-              {/* Close button for mobile */}
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-2 rounded-lg hover:bg-primary/10 transition-colors"
-
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-          
-          <div className="p-4 lg:p-4 space-y-4 lg:space-y-6">
-            <nav className="space-y-2 lg:space-y-3">
-              {[
-                { id: 'overview', icon: BarChart3, label: 'Overview' },
-                { id: 'stats', icon: BarChart3, label: 'Stats' },
-                { id: 'users', icon: Users, label: 'Users' },
-                { id: 'events', icon: Calendar, label: 'Events' },
-                { id: 'courses', icon: BookOpen, label: 'Courses' },
-                { id: 'enrollments', icon: UserCheck, label: 'Enrollments' },
-                { id: 'fields', icon: Globe, label: 'Fields' },
-                { id: 'messages', icon: Mail, label: 'Messages' },
-                { id: 'tickets', icon: TicketIcon, label: 'Tickets' },
-              ].map((item) => (
-                <Button
-                  key={item.id}
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start h-12 lg:h-12 text-base lg:text-base font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary rounded-lg",
-                    activeTab === item.id && "bg-primary/15 text-primary shadow-sm border border-primary/20"
-                  )}
-                  onClick={() => {
-                    setActiveTab(item.id as ActiveTab);
-                    setSidebarOpen(false); // Close sidebar on mobile after selection
-                  }}
-                >
-                  <item.icon className="mr-3 lg:mr-3 h-5 lg:h-5 w-5 lg:w-5" />
-                  {item.label}
-                </Button>
-              ))}
-
-              
-              <div className="pt-4 lg:pt-4 border-t border-border/50">
-              <Button
-                variant="ghost"
-                  className="w-full justify-start h-12 lg:h-12 text-base lg:text-base font-medium text-destructive hover:bg-destructive/10 hover:text-destructive rounded-lg transition-all duration-200"
-                onClick={handleLogout}
-              >
-                  <LogOut className="mr-3 lg:mr-3 h-5 lg:h-5 w-5 lg:w-5" />
-                Logout
-              </Button>
-              </div>
-            </nav>
-          </div>
-        </aside>
+        <AdminSidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)}
+          activePage={`/admin${activeTab !== 'overview' ? `?tab=${activeTab}` : ''}`}
+        />
 
         {/* Main Content */}
         <div className={cn("flex-1 transition-all duration-300", "lg:ml-64")}>
@@ -1783,6 +1723,13 @@ const AdminDashboard: React.FC = () => {
               <div className="space-y-6">
                 {activeTab === 'overview' && (
                   <>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Site Statistics</h3>
+                      <div>
+                        <Button variant="outline" onClick={openStatsDialog}>Edit Stats</Button>
+                      </div>
+                    </div>
+
                     <div className="grid gap-3 lg:gap-4 md:grid-cols-2 lg:grid-cols-4">
                       <Card className="p-3 lg:p-4 bg-card">
                         <div className="flex items-center gap-3 lg:gap-4">
@@ -1935,13 +1882,6 @@ const AdminDashboard: React.FC = () => {
                 
                 {activeTab === 'stats' && (
                   <>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Site Statistics</h3>
-                      <div>
-                        <Button variant="outline" onClick={openStatsDialog}>Edit Stats</Button>
-                      </div>
-                    </div>
-
                     <div className="grid gap-3 lg:gap-4 md:grid-cols-2 lg:grid-cols-4">
                       <Card className="p-3 lg:p-4 bg-card">
                         <div className="flex items-center gap-3 lg:gap-4">
@@ -2032,7 +1972,7 @@ const AdminDashboard: React.FC = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-                
+
                 {activeTab === 'users' && (
                   <Card className="p-4">
                     <DataTable

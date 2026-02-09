@@ -40,6 +40,55 @@ interface RegisterFormData {
 
 // Dynamic field options will be loaded from database
 
+// Helper function to parse database errors into user-friendly messages
+const parseErrorMessage = (error: any): string => {
+  if (!error) return 'An unexpected error occurred';
+  
+  const errorMessage = typeof error === 'string' ? error : error.message || '';
+  const errorStr = errorMessage.toLowerCase();
+  
+  // Handle duplicate key violations
+  if (errorStr.includes('duplicate key') || errorStr.includes('unique constraint')) {
+    if (errorStr.includes('email')) {
+      return 'This email address is already registered. Please use a different email or try logging in.';
+    }
+    return 'This value already exists. Please use a different one.';
+  }
+  
+  // Handle auth errors
+  if (errorStr.includes('invalid login credentials') || errorStr.includes('invalid email or password')) {
+    return 'Invalid email or password. Please check your credentials and try again.';
+  }
+  
+  if (errorStr.includes('email not confirmed')) {
+    return 'Please confirm your email address before logging in.';
+  }
+  
+  if (errorStr.includes('user not found')) {
+    return 'No account found with this email address.';
+  }
+  
+  if (errorStr.includes('password') && errorStr.includes('weak')) {
+    return 'Password is too weak. Please use a stronger password with at least 6 characters.';
+  }
+  
+  if (errorStr.includes('rate limit')) {
+    return 'Too many attempts. Please wait a few minutes and try again.';
+  }
+  
+  if (errorStr.includes('network') || errorStr.includes('connection')) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+  
+  // If it's a clean message without technical details, return it
+  if (!errorStr.includes('_') && !errorStr.includes('constraint') && errorMessage.length < 100) {
+    return errorMessage;
+  }
+  
+  // Default fallback for unknown errors
+  return 'Something went wrong. Please try again or contact support if the problem persists.';
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const { signIn, signUp, loading, user, userProfile } = useAuth();
@@ -143,7 +192,7 @@ export default function Login() {
       const { error } = await signIn(loginForm.email, loginForm.password);
       
       if (error) {
-        setError(error.message || 'Failed to sign in');
+        setError(parseErrorMessage(error));
         return;
       }
 
@@ -152,7 +201,7 @@ export default function Login() {
       setSuccess('Successfully logged in!');
       // Redirect will be handled by useEffect above
     } catch (error) {
-      setError('An unexpected error occurred');
+      setError(parseErrorMessage(error));
       console.error('Login error:', error);
     } finally {
       setIsSubmitting(false);
@@ -192,7 +241,7 @@ export default function Login() {
       );
       
       if (error) {
-        setError(error.message || 'Failed to create account');
+        setError(parseErrorMessage(error));
         return;
       }
 
@@ -208,7 +257,7 @@ export default function Login() {
         role: 'Member'
       });
     } catch (error) {
-      setError('An unexpected error occurred');
+      setError(parseErrorMessage(error));
       console.error('Registration error:', error);
     } finally {
       setIsSubmitting(false);
@@ -234,10 +283,10 @@ export default function Login() {
           setDevelopmentOtp(result.data.otpCode);
           }
       } else {
-        setError(result.error || 'Failed to send reset code');
+        setError(parseErrorMessage(result.error || 'Failed to send reset code'));
       }
     } catch (err: any) {
-      setError('Failed to send OTP. Please try again.');
+      setError(parseErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -280,10 +329,10 @@ export default function Login() {
         setOtpSent(false);
         setDevelopmentOtp('');
       } else {
-        setError(result.error);
+        setError(parseErrorMessage(result.error));
       }
     } catch (err: any) {
-      setError('Failed to reset password. Please try again.');
+      setError(parseErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
