@@ -50,6 +50,7 @@ import {
   ChevronDown,
   Home,
   Mail,
+  Phone,
   Ticket as TicketIcon,
   BookOpen
 } from 'lucide-react';
@@ -200,6 +201,7 @@ const AdminDashboard: React.FC = () => {
   const [courseEnrollmentStats, setCourseEnrollmentStats] = useState<{ title: string; count: number }[]>([]);
   const [siteStats, setSiteStats] = useState<{ total_members?: number; events_hosted?: number; research_projects?: number; success_rate?: string; contact_email?: string; contact_phone?: string } | null>(null);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
+  const [isStatsEditMode, setIsStatsEditMode] = useState(false);
   const [statsForm, setStatsForm] = useState({
     total_members: 0,
     events_hosted: 0,
@@ -1882,51 +1884,230 @@ const AdminDashboard: React.FC = () => {
                 
                 {activeTab === 'stats' && (
                   <>
-                    <div className="grid gap-3 lg:gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <Card className="p-3 lg:p-4 bg-card">
-                        <div className="flex items-center gap-3 lg:gap-4">
-                          <Users className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
+                    <div className="max-w-4xl mx-auto">
+                      {/* Header with View/Edit Toggle */}
+                      <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 rounded-lg border border-primary/20">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/20 rounded-lg">
+                            <BarChart3 className="h-6 w-6 text-primary" />
+                          </div>
                           <div>
-                            <p className="text-xs lg:text-sm text-muted-foreground">Total Members</p>
-                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.total_members ?? 0}</h3>
+                            <h2 className="text-xl font-bold">Site Statistics</h2>
+                            <p className="text-sm text-muted-foreground">Manage your site-wide statistics and contact info</p>
                           </div>
                         </div>
-                      </Card>
-                      <Card className="p-3 lg:p-4 bg-card">
-                        <div className="flex items-center gap-3 lg:gap-4">
-                          <Calendar className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
-                          <div>
-                            <p className="text-xs lg:text-sm text-muted-foreground">Events Hosted</p>
-                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.events_hosted ?? 0}</h3>
-                          </div>
+                        <div className="flex gap-2">
+                          {!isStatsEditMode ? (
+                            <Button 
+                              onClick={() => {
+                                setStatsForm({
+                                  total_members: siteStats?.total_members ?? 0,
+                                  events_hosted: siteStats?.events_hosted ?? 0,
+                                  research_projects: siteStats?.research_projects ?? 0,
+                                  success_rate: siteStats?.success_rate ?? '0',
+                                  contact_email: siteStats?.contact_email ?? '',
+                                  contact_phone: siteStats?.contact_phone ?? ''
+                                });
+                                setIsStatsEditMode(true);
+                              }}
+                              className="gap-2"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                              Edit Statistics
+                            </Button>
+                          ) : (
+                            <>
+                              <Button 
+                                variant="ghost"
+                                onClick={() => {
+                                  setIsStatsEditMode(false);
+                                  setStatsForm({
+                                    total_members: siteStats?.total_members ?? 0,
+                                    events_hosted: siteStats?.events_hosted ?? 0,
+                                    research_projects: siteStats?.research_projects ?? 0,
+                                    success_rate: siteStats?.success_rate ?? '0',
+                                    contact_email: siteStats?.contact_email ?? '',
+                                    contact_phone: siteStats?.contact_phone ?? ''
+                                  });
+                                }}
+                                className="gap-2"
+                              >
+                                <X className="h-4 w-4" />
+                                Cancel
+                              </Button>
+                              <Button 
+                                onClick={async () => {
+                                  await handleSaveStats();
+                                  setIsStatsEditMode(false);
+                                }}
+                                className="gap-2"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                Save Changes
+                              </Button>
+                            </>
+                          )}
                         </div>
-                      </Card>
-                      <Card className="p-3 lg:p-4 bg-card">
-                        <div className="flex items-center gap-3 lg:gap-4">
-                          <Beaker className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
-                          <div>
-                            <p className="text-xs lg:text-sm text-muted-foreground">Research Projects</p>
-                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.research_projects ?? 0}</h3>
-                          </div>
-                        </div>
-                      </Card>
-                      <Card className="p-3 lg:p-4 bg-card">
-                        <div className="flex items-center gap-3 lg:gap-4">
-                          <BarChart3 className="h-6 lg:h-8 w-6 lg:w-8 text-primary" />
-                          <div>
-                            <p className="text-xs lg:text-sm text-muted-foreground">Success Rate</p>
-                            <h3 className="text-lg lg:text-2xl font-bold text-foreground">{siteStats?.success_rate ?? '0'}%</h3>
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
+                      </div>
 
-                    <div className="mt-6">
-                      <Card className="p-4">
-                        <h3 className="text-base lg:text-lg font-semibold mb-2">Contact Info</h3>
-                        <p className="text-sm text-muted-foreground">Email: {siteStats?.contact_email ?? 'Not set'}</p>
-                        <p className="text-sm text-muted-foreground">Phone: {siteStats?.contact_phone ?? 'Not set'}</p>
-                      </Card>
+                      {/* View Mode - Beautiful Cards */}
+                      {!isStatsEditMode && (
+                        <div className="space-y-6">
+                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            <Card className="p-5 bg-gradient-to-br from-blue-500/10 to-primary/5 border-blue-500/20 hover:shadow-lg transition-all">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-blue-500/20 rounded-lg">
+                                  <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <h3 className="font-semibold text-sm text-muted-foreground">Total Members</h3>
+                              </div>
+                              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{siteStats?.total_members ?? 0}</p>
+                            </Card>
+                            <Card className="p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/20 hover:shadow-lg transition-all">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-green-500/20 rounded-lg">
+                                  <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                </div>
+                                <h3 className="font-semibold text-sm text-muted-foreground">Events Hosted</h3>
+                              </div>
+                              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{siteStats?.events_hosted ?? 0}</p>
+                            </Card>
+                            <Card className="p-5 bg-gradient-to-br from-purple-500/10 to-pink-500/5 border-purple-500/20 hover:shadow-lg transition-all">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-purple-500/20 rounded-lg">
+                                  <Beaker className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                                </div>
+                                <h3 className="font-semibold text-sm text-muted-foreground">Research Projects</h3>
+                              </div>
+                              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{siteStats?.research_projects ?? 0}</p>
+                            </Card>
+                            <Card className="p-5 bg-gradient-to-br from-orange-500/10 to-yellow-500/5 border-orange-500/20 hover:shadow-lg transition-all">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-orange-500/20 rounded-lg">
+                                  <BarChart3 className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                </div>
+                                <h3 className="font-semibold text-sm text-muted-foreground">Success Rate</h3>
+                              </div>
+                              <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{siteStats?.success_rate ?? '0'}%</p>
+                            </Card>
+                          </div>
+
+                          <Card className="p-6 bg-gradient-to-br from-primary/5 to-purple-500/5 border-primary/20">
+                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                              <Mail className="h-5 w-5 text-primary" />
+                              Contact Information
+                            </h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className="flex items-center gap-3 p-3 bg-background/50 rounded-lg border">
+                                <Mail className="h-5 w-5 text-primary" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Email</p>
+                                  <p className="font-medium">{siteStats?.contact_email || 'Not set'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 p-3 bg-background/50 rounded-lg border">
+                                <Phone className="h-5 w-5 text-primary" />
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Phone</p>
+                                  <p className="font-medium">{siteStats?.contact_phone || 'Not set'}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+                      )}
+
+                      {/* Edit Mode - Clean Table */}
+                      {isStatsEditMode && (
+                        <Card className="p-6 bg-card border-2 border-primary/30">
+                          <div className="flex items-center gap-2 mb-4 pb-4 border-b">
+                            <Edit3 className="h-5 w-5 text-primary" />
+                            <h3 className="text-lg font-semibold">Editing Mode</h3>
+                            <Badge variant="outline" className="ml-auto">Unsaved Changes</Badge>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="grid gap-4">
+                              <div className="flex items-center gap-4 p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                                <div className="flex items-center gap-2 min-w-[200px]">
+                                  <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                  <Label className="font-semibold">Total Members</Label>
+                                </div>
+                                <Input
+                                  type="number"
+                                  name="total_members"
+                                  value={statsForm.total_members}
+                                  onChange={handleStatsChange}
+                                  className="flex-1 bg-background border-blue-500/30 focus:border-blue-500"
+                                />
+                              </div>
+                              <div className="flex items-center gap-4 p-4 bg-green-500/5 rounded-lg border border-green-500/20">
+                                <div className="flex items-center gap-2 min-w-[200px]">
+                                  <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                  <Label className="font-semibold">Events Hosted</Label>
+                                </div>
+                                <Input
+                                  type="number"
+                                  name="events_hosted"
+                                  value={statsForm.events_hosted}
+                                  onChange={handleStatsChange}
+                                  className="flex-1 bg-background border-green-500/30 focus:border-green-500"
+                                />
+                              </div>
+                              <div className="flex items-center gap-4 p-4 bg-purple-500/5 rounded-lg border border-purple-500/20">
+                                <div className="flex items-center gap-2 min-w-[200px]">
+                                  <Beaker className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                                  <Label className="font-semibold">Research Projects</Label>
+                                </div>
+                                <Input
+                                  type="number"
+                                  name="research_projects"
+                                  value={statsForm.research_projects}
+                                  onChange={handleStatsChange}
+                                  className="flex-1 bg-background border-purple-500/30 focus:border-purple-500"
+                                />
+                              </div>
+                              <div className="flex items-center gap-4 p-4 bg-orange-500/5 rounded-lg border border-orange-500/20">
+                                <div className="flex items-center gap-2 min-w-[200px]">
+                                  <BarChart3 className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                                  <Label className="font-semibold">Success Rate (%)</Label>
+                                </div>
+                                <Input
+                                  name="success_rate"
+                                  value={statsForm.success_rate}
+                                  onChange={handleStatsChange}
+                                  className="flex-1 bg-background border-orange-500/30 focus:border-orange-500"
+                                />
+                              </div>
+                              <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                                <div className="flex items-center gap-2 min-w-[200px]">
+                                  <Mail className="h-5 w-5 text-primary" />
+                                  <Label className="font-semibold">Contact Email</Label>
+                                </div>
+                                <Input
+                                  name="contact_email"
+                                  value={statsForm.contact_email}
+                                  onChange={handleStatsChange}
+                                  className="flex-1 bg-background"
+                                  placeholder="contact@example.com"
+                                />
+                              </div>
+                              <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                                <div className="flex items-center gap-2 min-w-[200px]">
+                                  <Phone className="h-5 w-5 text-primary" />
+                                  <Label className="font-semibold">Contact Phone</Label>
+                                </div>
+                                <Input
+                                  name="contact_phone"
+                                  value={statsForm.contact_phone}
+                                  onChange={handleStatsChange}
+                                  className="flex-1 bg-background"
+                                  placeholder="+1 234 567 8900"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      )}
                     </div>
                   </>
                 )}
