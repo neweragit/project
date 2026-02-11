@@ -1,0 +1,32 @@
+{
+  "name": "pdf-watermark-server",
+  "version": "1.0.0",
+  "description": "PDF watermarking server for New Era magazines with user tracking",
+  "main": "pdf-watermark-server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node pdf-watermark-server.js",
+    "dev": "nodemon pdf-watermark-server.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "pdf-lib": "^1.17.1",
+    "node-fetch": "^3.3.2",
+    "@supabase/supabase-js": "^2.38.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "pdf",
+    "watermark",
+    "protection",
+    "supabase",
+    "magazines",
+    "downloads"
+  ],
+  "author": "New Era",
+  "license": "MIT"
+}

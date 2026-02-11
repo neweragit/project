@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
-import { BookOpen, Download, Eye, Search, Lock, CheckCircle, Clock, Users, Calendar, DollarSign } from 'lucide-react';
+import { BookOpen, Download, Eye, Search, Lock, CheckCircle, Clock, Users, Calendar, DollarSign, Shield } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -145,6 +145,29 @@ const Magazines: React.FC = () => {
     setIsRequestDialogOpen(true);
   };
 
+  // Generate watermarked PDF download URL
+  const getWatermarkedDownloadUrl = (magazineId: string) => {
+    if (!userProfile?.id) return '#';
+    const baseUrl = import.meta.env.VITE_PDF_WATERMARK_SERVER_URL || 'http://localhost:3002';
+    return `${baseUrl}/download-pdf/${magazineId}?userId=${userProfile.id}`;
+  };
+
+  // Handle secure PDF download with watermarking
+  const handleSecureDownload = (magazineId: string, magazineTitle: string) => {
+    if (!userProfile?.id) {
+      alert('Please sign in to download magazines');
+      return;
+    }
+
+    const downloadUrl = getWatermarkedDownloadUrl(magazineId);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${magazineTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filtered = magazines.filter((m) => {
     if (!query) return true;
     const q = query.toLowerCase();
@@ -180,6 +203,12 @@ const Magazines: React.FC = () => {
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Explore our collection of research, interviews, and insights. {userProfile ? 'Request access to premium content!' : 'Sign in to request access to premium magazines.'}
             </p>
+            {userProfile && (
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 px-4 py-2 rounded-full max-w-lg mx-auto">
+                <Shield className="h-4 w-4 text-green-600" />
+                <span>All downloads are personalized and protected with your information</span>
+              </div>
+            )}
           </div>
           <div className="mt-8 flex items-center justify-center">
             <div className="w-full max-w-2xl">
@@ -333,22 +362,21 @@ const Magazines: React.FC = () => {
                           variant="outline" 
                           size="sm" 
                           className="flex-1 group/btn"
-                          asChild
+                          onClick={() => window.open(getWatermarkedDownloadUrl(mag.id), '_blank')}
                         >
-                          <a href={mag.pdf_url} target="_blank" rel="noreferrer">
-                            <Eye className="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform" />
-                            View PDF
-                          </a>
+                          <Eye className="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform" />
+                          View PDF
                         </Button>
                         <Button 
                           size="sm" 
                           className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 group/btn"
-                          asChild
+                          onClick={() => handleSecureDownload(mag.id, mag.title)}
                         >
-                          <a href={mag.pdf_url} download>
+                          <div className="flex items-center">
+                            <Shield className="w-3 h-3 mr-1 opacity-80" />
                             <Download className="w-4 h-4 mr-2 group-hover/btn:animate-bounce" />
                             Download
-                          </a>
+                          </div>
                         </Button>
                       </>
                     )}

@@ -44,7 +44,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Shield
 } from 'lucide-react';
 
 interface Magazine {
@@ -187,6 +188,30 @@ const MagazineAdmin: React.FC = () => {
     expires_at: null as string | null
   });
   const [users, setUsers] = useState<{ id: string; full_name: string }[]>([]);
+
+  // PDF Watermarking Helper Functions
+  const getWatermarkedDownloadUrl = (magazineId: string, userId?: string) => {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) return '#';
+    const baseUrl = import.meta.env.VITE_PDF_WATERMARK_SERVER_URL || 'http://localhost:3002';
+    return `${baseUrl}/download-pdf/${magazineId}?userId=${targetUserId}`;
+  };
+
+  const handleSecureDownload = (magazineId: string, magazineTitle: string, userId?: string) => {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) {
+      alert('User ID required for secure download');
+      return;
+    }
+
+    const downloadUrl = getWatermarkedDownloadUrl(magazineId, targetUserId);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${magazineTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Protect admin pages - only administrators can access
   useEffect(() => {
@@ -990,12 +1015,11 @@ const MagazineAdmin: React.FC = () => {
                             size="sm" 
                             variant="outline" 
                             className="flex-1"
-                            asChild
+                            onClick={() => handleSecureDownload(magazine.id, magazine.title)}
                           >
-                            <a href={magazine.pdf_url} target="_blank" rel="noopener noreferrer">
-                              <Download className="mr-2 h-4 w-4" />
-                              PDF
-                            </a>
+                            <Shield className="mr-1 h-3 w-3 opacity-70" />
+                            <Download className="mr-2 h-4 w-4" />
+                            PDF
                           </Button>
                         )}
                         <Button 
@@ -1592,11 +1616,15 @@ const MagazineAdmin: React.FC = () => {
               {/* PDF Download */}
               {viewingMagazine.pdf_url && (
                 <div className="bg-gradient-to-r from-green-600/10 to-emerald-500/10 p-4 rounded-lg border-2 border-green-600/30">
-                  <Button variant="default" size="lg" className="w-full bg-green-600 hover:bg-green-700" asChild>
-                    <a href={viewingMagazine.pdf_url} target="_blank" rel="noopener noreferrer">
-                      <Download className="mr-2 h-5 w-5" />
-                      Download Magazine PDF
-                    </a>
+                  <Button 
+                    variant="default" 
+                    size="lg" 
+                    className="w-full bg-green-600 hover:bg-green-700" 
+                    onClick={() => handleSecureDownload(viewingMagazine.id, viewingMagazine.title)}
+                  >
+                    <Shield className="mr-1 h-4 w-4 opacity-80" />
+                    <Download className="mr-2 h-5 w-5" />
+                    Download Protected Magazine PDF
                   </Button>
                 </div>
               )}
